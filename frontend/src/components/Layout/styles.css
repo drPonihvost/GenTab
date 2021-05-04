@@ -1,0 +1,17 @@
+.layout-content {
+  width: 100%;
+  max-width: 1200px;
+  padding: 24px;
+
+  margin: 0 auto;
+}
+
+.layout {
+  height: 100%;
+
+  background: #fff;
+}
+
+.layout-avatar {
+  cursor: pointer;
+}
