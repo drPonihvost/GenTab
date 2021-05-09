@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from blueprints.auth.routes import auth
 from blueprints.projects.routes import projects
+from base.base import db
 
 app = Flask(__name__)
 CORS(app)
@@ -22,4 +23,5 @@ jwt = JWTManager(app)
 
 
 if __name__ == "__main__":
+    db.init_app(app)
     app.run()
