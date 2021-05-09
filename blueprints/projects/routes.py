@@ -17,12 +17,11 @@ projects = Blueprint('projects', __name__)
 #     db = None
 #     return request
 
-s = Project.query.filter_by(name='missing').first()
-print(s is None)
-
 @projects.route('/upload', methods=['GET', 'POST'])
 def upload():
-
+    res = Project.query.filter_by(name='hello').first()
+    
+    print(res)
 
     # filename = request.files['file'].filename
     # data = request.files.get('file').read().decode('utf-8')

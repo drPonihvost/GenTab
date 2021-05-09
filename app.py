@@ -6,22 +6,23 @@ from blueprints.auth.routes import auth
 from blueprints.projects.routes import projects
 from base.base import db
 
-app = Flask(__name__)
-CORS(app)
+def create_app():
+    app = Flask(__name__)
+    CORS(app)
 
-app.register_blueprint(auth)
-app.register_blueprint(projects)
+    app.register_blueprint(auth)
+    app.register_blueprint(projects)
 
-# config
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///base/gentab.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # config
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///base/gentab.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-jwt = JWTManager(app)
-
-
-
+    db.init_app(app)  
+    jwt = JWTManager(app)
+    
+    return app
 
 if __name__ == "__main__":
-    db.init_app(app)
+    app = create_app()
     app.run()
