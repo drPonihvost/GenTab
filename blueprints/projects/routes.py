@@ -1,12 +1,16 @@
 from flask import Blueprint, request, jsonify
 
-projects = Blueprint('projects', __name__);
+from .loader import loader
 
-@projects.route('/upload', methods=['POST'])
+projects = Blueprint('projects', __name__)
+
+
+@projects.route('/upload', methods=['GET', 'POST'])
 def upload():
-    # Проверить, что файл корректный
+    # проверка корректности файла
 
-    data = request.files.get('file').read().decode('utf-8');
-    print(data);
-    
+    filename = request.files['file'].filename
+    data = request.files.get('file').read().decode('utf-8')
+    loader(filename=filename, data=data)
+
     return jsonify()
