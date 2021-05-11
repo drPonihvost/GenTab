@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from blueprints.auth.routes import auth
 from blueprints.projects.routes import projects
-from base.base import db
+from blueprints.projects.models import db
 
 def create_app():
     app = Flask(__name__)
