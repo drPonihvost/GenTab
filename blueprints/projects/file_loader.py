@@ -35,11 +35,11 @@ def file_loader(filename, data):
         row_data = {}
         for index, key in enumerate(keys):
             row_data[key] = el[index]
-        if not Object.get_by_name(name=row_data['Sample Name'], project_id=project.id):
+        g_object = Object.get_by_name(name=row_data['Sample Name'], project_id=project.id)
+        if not g_object:
             g_object = Object(name=row_data['Sample Name'], project_id=project.id)
             g_object.save()
 
-        g_object = Object.get_by_name(name=row_data['Sample Name'], project_id=project.id)
         alleles = allele_parser(row_data)
         marker = Marker(name=row_data['Marker'],
                         **alleles,
