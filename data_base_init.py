@@ -1,5 +1,3 @@
-import os
-
 from base.data_base import db
 from app import create_app
 from dotenv import load_dotenv
