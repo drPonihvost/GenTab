@@ -1,0 +1,82 @@
+from datetime import datetime
+from base.data_base import db
+
+class BaseModel(db.Model):
+    __abstract__ = True
+    id = db.Column(db.Integer,
+                   primary_key=True,
+                   autoincrement=True)
+
+    def before_save(self, *args, **kwargs):
+        pass
+
+    def after_save(self, *args, **kwargs):
+        pass
+
+    def save(self, commit=True):
+        self.before_save()
+        db.session.add(self)
+        if commit:
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                raise e
+
+        self.after_save()
+
+    def before_update(self, *args, **kwargs):
+        pass
+
+    def after_update(self, *args, **kwargs):
+        pass
+
+    def update(self, *args, **kwargs):
+        self.before_update(*args, **kwargs)
+        db.session.commit()
+        self.after_update(*args, **kwargs)
+
+    def delete(self, commit=True):
+        db.session.delete(self)
+        if commit:
+            db.session.commit()
+
+
+class Project(BaseModel):
+    name = db.Column(db.String(225),
+                     unique=True)
+    # user_id = 0
+    load_at = db.Column(db.DateTime,
+                           default=datetime.utcnow())
+    object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
+
+    @classmethod
+    def get_by_name(cls, name):
+        return cls.query.filter_by(name=name).first()
+
+
+class Object(BaseModel):
+    __table_args__ = (db.UniqueConstraint('name', 'project_id'),)
+
+    @classmethod
+    def get_by_name(cls, name, project_id):
+        return cls.query.filter_by(name=name, project_id=project_id).first()
+
+
+    name = db.Column(db.String(50))
+    project_id = db.Column(db.Integer,
+                           db.ForeignKey('project.id'),
+                           nullable=False)
+    marker = db.relationship('Marker', backref='object', cascade='all,delete-orphan')
+
+class Marker(BaseModel):
+    object_id = db.Column(db.Integer,
+                          db.ForeignKey('object.id'),
+                          nullable=False)
+    name = db.Column(db.String(50))
+    allele_1 = db.Column(db.String(5))
+    allele_2 = db.Column(db.String(5))
+    allele_3 = db.Column(db.String(5))
+    allele_4 = db.Column(db.String(5))
+    allele_5 = db.Column(db.String(5))
+    allele_6 = db.Column(db.String(5))
