@@ -1,8 +1,13 @@
 from datetime import datetime
 from base.data_base import db
+from dataclasses import dataclass
+
+ALLELE_COUNT = 6
+
 
 class BaseModel(db.Model):
     __abstract__ = True
+
     id = db.Column(db.Integer,
                    primary_key=True,
                    autoincrement=True)
@@ -42,19 +47,26 @@ class BaseModel(db.Model):
             db.session.commit()
 
 
+@dataclass
 class Project(BaseModel):
     name = db.Column(db.String(225),
                      unique=True)
     # user_id = 0
     load_at = db.Column(db.DateTime,
-                           default=datetime.utcnow())
+                        default=datetime.utcnow())
     object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
 
     @classmethod
     def get_by_name(cls, name):
         return cls.query.filter_by(name=name).first()
 
+    id: int
+    name: str
+    load_at: load_at
+    object: 'Object'
 
+
+@dataclass
 class Object(BaseModel):
     __table_args__ = (db.UniqueConstraint('name', 'project_id'),)
 
@@ -62,13 +74,19 @@ class Object(BaseModel):
     def get_by_name(cls, name, project_id):
         return cls.query.filter_by(name=name, project_id=project_id).first()
 
-
     name = db.Column(db.String(50))
     project_id = db.Column(db.Integer,
                            db.ForeignKey('project.id'),
                            nullable=False)
     marker = db.relationship('Marker', backref='object', cascade='all,delete-orphan')
 
+    id: int
+    name: str
+    project_id: Project
+    marker: 'Marker'
+
+
+@dataclass
 class Marker(BaseModel):
     object_id = db.Column(db.Integer,
                           db.ForeignKey('object.id'),
@@ -80,3 +98,13 @@ class Marker(BaseModel):
     allele_4 = db.Column(db.String(5))
     allele_5 = db.Column(db.String(5))
     allele_6 = db.Column(db.String(5))
+
+    id: int
+    object_id: int
+    name: str
+    allele_1: str
+    allele_2: str
+    allele_3: str
+    allele_4: str
+    allele_5: str
+    allele_6: str

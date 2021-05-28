@@ -5,6 +5,7 @@ venv
 node_modules
 gentab.db
 test_projects/
+Задачи
 
 *.pyc
 __pycache__/
