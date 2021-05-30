@@ -82,7 +82,6 @@ class Object(BaseModel):
 
     id: int
     name: str
-    project_id: Project
     marker: 'Marker'
 
 
@@ -100,7 +99,6 @@ class Marker(BaseModel):
     allele_6 = db.Column(db.String(5))
 
     id: int
-    object_id: int
     name: str
     allele_1: str
     allele_2: str

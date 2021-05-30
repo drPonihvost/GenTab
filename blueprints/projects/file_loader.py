@@ -10,7 +10,7 @@ def allele_parser(row_data):
     allele_dict = {}
     for i in range(ALLELE_COUNT):
         in_order = row_data.get(f'Allele {i + 1}')
-        allele_dict[f'allele_{i + 1}'] = in_order or None
+        allele_dict[f'allele_{i + 1}'] = in_order or ""
 
     return allele_dict
 

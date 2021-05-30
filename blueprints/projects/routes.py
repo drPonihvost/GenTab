@@ -21,13 +21,10 @@ def upload():
 @projects.route('/return_projects/', methods=['GET', 'POST'])
 def return_projects():
 
-    return_projects = Project.query.all()
-
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get('page', 0, type=int)
     pagination = Project.query.paginate(page, per_page=POSTS_PER_PAGE, error_out=False)
     projects = pagination.items
-    print(jsonify(return_projects))
-    print(page)
 
-    return jsonify({'project': [project for project in projects], 'total_items': pagination.total}, )
+
+    return jsonify({'project': [project for project in projects]}, {'total_items': pagination.total, 'page':pagination.page, 'page_size': pagination.per_page})
 
