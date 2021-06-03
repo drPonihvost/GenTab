@@ -13,6 +13,7 @@ def upload():
 
     filename = request.files['file'].filename
     data = request.files.get('file').read().decode('utf-8')
+
     file_loader(filename, data)
 
     return jsonify()
@@ -20,12 +21,10 @@ def upload():
 
 @projects.route('/return_projects/', methods=['GET', 'POST'])
 def return_projects():
-    page, project_query = request.args.get('page', 0, type=int), request.args.get('name', type=str)
-    required_project = Project.filter_on_request(q=project_query)
-    if project_query:
-        pagination = required_project.paginate(page, per_page=POSTS_PER_PAGE, error_out=False)
-    else:
-        pagination = Project.query.paginate(page, per_page=POSTS_PER_PAGE, error_out=False)
+    page = request.args.get('page', 0, type=int)
+    project_query = request.args.get('name', type=str).strip()
+    pag_config = {'page': page, 'per_page': POSTS_PER_PAGE, 'error_out': False}
+    pagination = Project.filter_by_name(q=project_query).paginate(**pag_config)
     projects_list = pagination.items
 
     return jsonify(

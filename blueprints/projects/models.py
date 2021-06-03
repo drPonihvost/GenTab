@@ -61,7 +61,7 @@ class Project(BaseModel):
         return cls.query.filter_by(name=name).first()
 
     @classmethod
-    def filter_on_request(cls, q):
+    def filter_by_name(cls, q):
         return cls.query.filter(Project.name.contains(q))
 
     id: int
