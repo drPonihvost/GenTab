@@ -1,68 +1,26 @@
 from datetime import datetime
-from base.data_base import db
+from base.base_models import BaseModel, db
 from dataclasses import dataclass
-
-ALLELE_COUNT = 6
-
-
-class BaseModel(db.Model):
-    __abstract__ = True
-
-    id = db.Column(db.Integer,
-                   primary_key=True,
-                   autoincrement=True)
-
-    def before_save(self, *args, **kwargs):
-        pass
-
-    def after_save(self, *args, **kwargs):
-        pass
-
-    def save(self, commit=True):
-        self.before_save()
-        db.session.add(self)
-        if commit:
-            try:
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                raise e
-
-        self.after_save()
-
-    def before_update(self, *args, **kwargs):
-        pass
-
-    def after_update(self, *args, **kwargs):
-        pass
-
-    def update(self, *args, **kwargs):
-        self.before_update(*args, **kwargs)
-        db.session.commit()
-        self.after_update(*args, **kwargs)
-
-    def delete(self, commit=True):
-        db.session.delete(self)
-        if commit:
-            db.session.commit()
 
 
 @dataclass
 class Project(BaseModel):
     name = db.Column(db.String(225),
                      unique=True)
-    # user_id = 0
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('user.id'),
+                        nullable=False)
     load_at = db.Column(db.DateTime,
                         default=datetime.utcnow())
     object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
 
     @classmethod
-    def get_by_name(cls, name):
-        return cls.query.filter_by(name=name).first()
+    def get_by_name(cls, name, user_id):
+        return cls.query.filter(Project.name == name, Project.user_id == user_id).first()
 
     @classmethod
-    def filter_by_name(cls, q):
-        return cls.query.filter(Project.name.contains(q))
+    def filter_by_name(cls, q, user_id):
+        return cls.query.filter(Project.name.contains(q), Project.user_id == user_id)
 
     id: int
     name: str

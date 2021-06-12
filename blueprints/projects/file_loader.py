@@ -15,7 +15,7 @@ def allele_parser(row_data):
     return allele_dict
 
 
-def file_loader(filename, data):
+def file_loader(filename, data, user_id):
     """Проверка наличия в базе экземпляра класса Project с текущим значением filename,
     при отсутствии объект создается и запускается процедура парсинга данных для создания
     объектов классов Object, Marker.
@@ -24,7 +24,7 @@ def file_loader(filename, data):
     project = Project.get_by_name(name=filename)
     if project:
         project.delete()
-    project = Project(name=filename)
+    project = Project(name=filename, user_id=user_id)
     project.save()
     rows = data.splitlines()
     keys = rows[0].split('\t')[:-1]
