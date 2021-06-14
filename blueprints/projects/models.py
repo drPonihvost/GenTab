@@ -5,22 +5,23 @@ from dataclasses import dataclass
 
 @dataclass
 class Project(BaseModel):
-    name = db.Column(db.String(225),
-                     unique=True)
+    name = db.Column(db.String(225))
     user_id = db.Column(db.Integer,
                         db.ForeignKey('user.id'),
                         nullable=False)
-    load_at = db.Column(db.DateTime,
-                        default=datetime.utcnow())
+    load_at = db.Column(db.DateTime)
     object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
+
+    def __repr__(self):
+        return f'<id: {self.id}, name: {self.name}, user_id: {self.user_id}, load_at: {self.load_at}>'
 
     @classmethod
     def get_by_name(cls, name, user_id):
-        return cls.query.filter(Project.name == name, Project.user_id == user_id).first()
+        return cls.query.filter_by(name=name, user_id=user_id).first()
 
     @classmethod
     def filter_by_name(cls, q, user_id):
-        return cls.query.filter(Project.name.contains(q), Project.user_id == user_id)
+        return cls.query.filter(cls.name.contains(q), cls.user_id == user_id)
 
     id: int
     name: str

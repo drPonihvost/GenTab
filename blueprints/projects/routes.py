@@ -16,7 +16,6 @@ def upload():
     filename = request.files['file'].filename
     data = request.files.get('file').read().decode('utf-8')
     user_id = get_jwt_identity()
-    print(user_id)
 
     file_loader(filename, data, user_id)
 

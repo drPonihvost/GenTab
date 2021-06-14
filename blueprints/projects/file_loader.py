@@ -1,4 +1,5 @@
 from .models import Project, Object, Marker
+from datetime import datetime
 
 ALLELE_COUNT = 6
 
@@ -21,10 +22,10 @@ def file_loader(filename, data, user_id):
     объектов классов Object, Marker.
     При наличии объекта в БД удаляет его, все связанные с проектом
     сущности и записывает новые"""
-    project = Project.get_by_name(name=filename)
+    project = Project.get_by_name(name=filename, user_id=user_id)
     if project:
         project.delete()
-    project = Project(name=filename, user_id=user_id)
+    project = Project(name=filename, user_id=user_id, load_at=datetime.utcnow())
     project.save()
     rows = data.splitlines()
     keys = rows[0].split('\t')[:-1]
