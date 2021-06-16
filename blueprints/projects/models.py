@@ -69,3 +69,4 @@ class Marker(BaseModel):
     allele_4: str
     allele_5: str
     allele_6: str
+    alleles: str = "hren"

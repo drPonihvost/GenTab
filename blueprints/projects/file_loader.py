@@ -7,11 +7,10 @@ ALLELE_COUNT = 6
 def allele_parser(row_data):
     """Собирает словарь из значений аллелей в количестве указанном в ALLELE_COUNT из словаря переданного в
     row_data, если в словаре менее ALLELE_COUNT аллелей, заменяет пустые значения на None.
-    Заменяет пустые строки значений на None"""
+    Заменяет пустые строки значений на пустую строку"""
     allele_dict = {}
     for i in range(ALLELE_COUNT):
-        in_order = row_data.get(f'Allele {i + 1}')
-        allele_dict[f'allele_{i + 1}'] = in_order or ""
+        allele_dict[f'allele_{i + 1}'] = row_data.get(f'Allele {i + 1}') or ""
 
     return allele_dict
 
