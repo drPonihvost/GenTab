@@ -5,6 +5,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 POSTS_PER_PAGE = 20
 
+POSTS_PER_PAGE = 20
+
 projects = Blueprint('projects', __name__)
 
 
@@ -16,7 +18,6 @@ def upload():
     filename = request.files['file'].filename
     data = request.files.get('file').read().decode('utf-8')
     user_id = get_jwt_identity()
-
     file_loader(filename, data, user_id)
 
     return jsonify(user_id)

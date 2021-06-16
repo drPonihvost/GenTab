@@ -12,6 +12,7 @@ def allele_parser(row_data):
     for i in range(ALLELE_COUNT):
         allele_dict[f'allele_{i + 1}'] = row_data.get(f'Allele {i + 1}') or ""
 
+
     return allele_dict
 
 

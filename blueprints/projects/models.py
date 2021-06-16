@@ -3,6 +3,7 @@ from base.base_models import BaseModel, db
 from dataclasses import dataclass
 
 
+
 @dataclass
 class Project(BaseModel):
     name = db.Column(db.String(225))
@@ -10,6 +11,7 @@ class Project(BaseModel):
                         db.ForeignKey('user.id'),
                         nullable=False)
     load_at = db.Column(db.DateTime)
+
     object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
 
     def __repr__(self):
@@ -69,4 +71,3 @@ class Marker(BaseModel):
     allele_4: str
     allele_5: str
     allele_6: str
-
