@@ -1,4 +1,5 @@
 from .models import Project, Object, Marker
+from datetime import datetime
 
 ALLELE_COUNT = 6
 
@@ -6,25 +7,25 @@ ALLELE_COUNT = 6
 def allele_parser(row_data):
     """Собирает словарь из значений аллелей в количестве указанном в ALLELE_COUNT из словаря переданного в
     row_data, если в словаре менее ALLELE_COUNT аллелей, заменяет пустые значения на None.
-    Заменяет пустые строки значений на None"""
+    Заменяет пустые строки значений на пустую строку"""
     allele_dict = {}
     for i in range(ALLELE_COUNT):
-        in_order = row_data.get(f'Allele {i + 1}')
-        allele_dict[f'allele_{i + 1}'] = in_order or ""
+        allele_dict[f'allele_{i + 1}'] = row_data.get(f'Allele {i + 1}') or ""
+
 
     return allele_dict
 
 
-def file_loader(filename, data):
+def file_loader(filename, data, user_id):
     """Проверка наличия в базе экземпляра класса Project с текущим значением filename,
     при отсутствии объект создается и запускается процедура парсинга данных для создания
     объектов классов Object, Marker.
     При наличии объекта в БД удаляет его, все связанные с проектом
     сущности и записывает новые"""
-    project = Project.get_by_name(name=filename)
+    project = Project.get_by_name(name=filename, user_id=user_id)
     if project:
         project.delete()
-    project = Project(name=filename)
+    project = Project(name=filename, user_id=user_id, load_at=datetime.utcnow())
     project.save()
     rows = data.splitlines()
     keys = rows[0].split('\t')[:-1]
