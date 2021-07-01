@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from .models import User, Roles, Organizations, UserRoles
+from .schemas import Login
 
 auth = Blueprint('auth', __name__)
 
@@ -7,6 +8,8 @@ auth = Blueprint('auth', __name__)
 @auth.route('/token', methods=['POST'])
 def get_token():
     params = request.json
+    login = Login(**params)
+    print(login)
     user = User.authenticate(email=params.get('username'),
                              password=params.get('password'))
     if not user:

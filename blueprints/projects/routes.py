@@ -5,8 +5,6 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 POSTS_PER_PAGE = 20
 
-POSTS_PER_PAGE = 20
-
 projects = Blueprint('projects', __name__)
 
 
@@ -20,10 +18,10 @@ def upload():
     user_id = get_jwt_identity()
     file_loader(filename, data, user_id)
 
-    return jsonify(user_id)
+    return jsonify({"message": "success"})
 
 
-@projects.route('/get_projects/', methods=['GET', 'POST'])
+@projects.route('/projects/', methods=['GET', 'POST'])
 @jwt_required()
 def get_projects():
     page = request.args.get('page', 0, type=int)
