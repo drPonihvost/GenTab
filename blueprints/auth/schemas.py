@@ -1,13 +1,30 @@
-from pydantic import BaseModel, validator
-import validate_email
+from pydantic import BaseModel as SchemaModel, validator, EmailStr, root_validator
+from .models import User
 
 
-class Login(BaseModel):
-    username: str
+
+class Login(SchemaModel):
+    email: EmailStr
     password: str
 
-    # @validator('username')
-    # def correct_email(cls, v):
-    #     assert validate_email(v), "incorrect email"
-    #     return v
+
+    @validator('password')
+    def correct_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("incorrect password")
+        return v
+
+    @root_validator
+    def valid_user(cls, values):
+        try:
+            User.authenticate(**values)
+        except Exception:
+            raise ValueError("not user")
+        return values
+
+
+
+
+
+
 

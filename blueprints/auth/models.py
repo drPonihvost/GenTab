@@ -11,6 +11,7 @@ class Organizations(BaseModel):
     def __init__(self, *args, **kwargs):
         super(Organizations, self).__init__(*args, **kwargs)
 
+
 class User(BaseModel):
     password = db.Column(db.String())
     name = db.Column(db.String())
@@ -32,12 +33,14 @@ class User(BaseModel):
         )
         return token
 
+
     @classmethod
     def authenticate(cls, email, password):
         user = cls.query.filter(cls.email == email).one()
         if not bcrypt.verify(password, user.password):
             raise Exception('No user with this password')
         return user
+
 
 class Roles(BaseModel):
     name = db.Column(db.String(), default='User')
