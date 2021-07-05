@@ -18,7 +18,7 @@ def upload():
     user_id = get_jwt_identity()
     data = parser(data=data, filename=filename)
 
-    return jsonify({"message": "success"})
+    return jsonify(data)
 
 
 @projects.route('/projects/', methods=['GET', 'POST'])

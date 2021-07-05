@@ -62,7 +62,7 @@ REQUIRED_KEYS = ['Sample Name',
                  'Allele 3',
                  'Allele 4',
                  'Allele 5',
-                 'Allele 6']
+
 
 
 def line_to_array(line):
@@ -79,14 +79,62 @@ def validator(value):
 
 def validate_fields(header):
     for i in REQUIRED_KEYS[:4]:
-        try:
-            header.index(i)
-        except ValueError:
-            return {"message": f"Отсутствует поле {i}, убедитесь в корректности файла импорта"}
+        if header.count(i) == 0:
+            return 'invalid'
+
+def get_dict(header):
+    d = {}
+    for key in REQUIRED_KEYS:
+        if key in header:
+            d[key] = header.index(key)
+    return d
+
+
+def allele_in_list(row, header):
+    alleles = []
+    for i in range(ALLELE_COUNT):
+        if f'Allele {i+1}' in header:
+            alleles.append(row[header[f'Allele {i+1}']])
+        else:
+            alleles.append('')
+    return alleles
+
 
 
 def parser(data, filename):
-    invalid = False
+
+    result = {
+        "validation_data": {},
+        "project": {}
+    }
+
+    keys_line, *rest = data.splitlines()
+    header = line_to_array(keys_line)
+    if validate_fields(header) == 'invalid':
+        return {
+            "data": {},
+            "status": "invalid",
+            "result": {}
+        }
+
+    header = get_dict(header)
+    for row in rest:
+
+        sample_name = row[header['Sample Name']]
+        marker = row[header['Marker']]
+        alleles = allele_in_list(row, header)
+        if not data[filename].get(sample_name):
+            data[filename][sample_name] = {marker: alleles}
+        else:
+            data[filename][sample_name][marker] = alleles
+
+
+
+
+
+
+
+
 #
 # def get_dict(header):
 #     d = {}

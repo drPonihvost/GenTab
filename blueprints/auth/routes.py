@@ -14,8 +14,6 @@ def get_token():
         user = User.authenticate(**params)
     except ValidationError as e:
         return e.json(), 400
-    except NoResultFound as e:
-        return str(e), 400
 
     token = user.get_token()
     return {"access_token": token}
