@@ -6,6 +6,7 @@ node_modules
 gentab.db
 test_projects/
 Задачи
+parser.js
 
 *.pyc
 __pycache__/

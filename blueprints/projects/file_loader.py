@@ -62,6 +62,7 @@ REQUIRED_KEYS = ['Sample Name',
                  'Allele 3',
                  'Allele 4',
                  'Allele 5',
+                 'Allele 6']
 
 
 
@@ -90,13 +91,15 @@ def get_dict(header):
     return d
 
 
-def allele_in_list(row, header):
-    alleles = []
+def allele_in_dict(row, header):
+    alleles = {}
     for i in range(ALLELE_COUNT):
-        if f'Allele {i+1}' in header:
-            alleles.append(row[header[f'Allele {i+1}']])
+        key = f'Allele {i+1}'
+        if key in header:
+            alleles[key] = row[header.get(key)]
+
         else:
-            alleles.append('')
+            alleles[key] = ''
     return alleles
 
 
@@ -118,24 +121,26 @@ def parser(data, filename):
         }
 
     header = get_dict(header)
+    data = {filename: {}}
     for row in rest:
-
+        row = line_to_array(row)
         sample_name = row[header['Sample Name']]
         marker = row[header['Marker']]
-        alleles = allele_in_list(row, header)
+        alleles = allele_in_dict(row, header)
+
         if not data[filename].get(sample_name):
             data[filename][sample_name] = {marker: alleles}
         else:
             data[filename][sample_name][marker] = alleles
 
+    return {
+        "data": data,
+        "status": "valid",
+        "result": result
+    }
 
 
 
-
-
-
-
-#
 # def get_dict(header):
 #     d = {}
 #     for key in REQUIRED_KEYS:
