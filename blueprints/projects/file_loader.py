@@ -1,57 +1,5 @@
 from .models import Project, Object, Marker
 from datetime import datetime
-from functools import reduce
-
-# OBJECT_NAME_INDEX = 0
-#
-# REQUORED_FIELDS = {
-#     'Sample Name': 1,
-#     'Marker': 1,
-#     'Allele 1': 1,
-#     'Allele 2': 1
-# }
-#
-# def validator(value):
-#     if not value:
-#         return 'invalid'
-#     if value and value == 'OL':
-#         return 'partial_valid'
-#     return 'valid'
-#
-#
-# def line_to_array(line):
-#     return line.split('\t')
-#
-# # def acc(index, value):
-# #     acc = {}
-# #     if not value:
-# #         return acc
-# #     acc[index] = value
-#
-#
-# def parser(data, filename):
-#     invalid = False
-#
-#     # result = {
-#     #     validation_data: {},
-#     #     project: {}
-#     # }
-#
-#
-#     keys_line, *rest = data.splitlines()
-#     head = line_to_array(keys_line)
-#     def index_map()
-#     index_map = reduce(lambda acc, value: acc if not value else acc ({head.index(value): value}), head)
-#     print(index_map)
-#
-#
-#     for line in rest:
-#         line = line_to_array(line)
-
-
-
-
-
 
 
 ALLELE_COUNT = 6
@@ -65,15 +13,12 @@ REQUIRED_KEYS = ['Sample Name',
                  'Allele 6']
 
 
-
 def line_to_array(line):
     return line.split('\t')
 
 
 def validator(value):
-    if not value:
-        return 'invalid'
-    if value and value == 'OL':
+    if value == 'OL':
         return 'partial_valid'
     return 'valid'
 
@@ -82,6 +27,7 @@ def validate_fields(header):
     for i in REQUIRED_KEYS[:4]:
         if header.count(i) == 0:
             return 'invalid'
+
 
 def get_dict(header):
     d = {}
@@ -93,32 +39,37 @@ def get_dict(header):
 
 def allele_in_dict(row, header):
     alleles = {}
+    allele_validate = 'valid'
     for i in range(ALLELE_COUNT):
-        key = f'Allele {i+1}'
-        if key in header:
-            alleles[key] = row[header.get(key)]
 
+        key = f'allele_{i+1}'
+        if key in header:
+            value = row[header.get(f'Allele {i+1}')]
+            alleles[key] = value
+            if allele_validate == 'valid':
+                allele_validate = validator(value)
         else:
             alleles[key] = ''
-    return alleles
-
+    return alleles, allele_validate
 
 
 def parser(data, filename):
 
+
+
     result = {
-        "validation_data": {},
+        "validation_data": {
+            "status": 'valid',
+            'data':[]
+        },
         "project": {}
     }
 
     keys_line, *rest = data.splitlines()
     header = line_to_array(keys_line)
     if validate_fields(header) == 'invalid':
-        return {
-            "data": {},
-            "status": "invalid",
-            "result": {}
-        }
+        result["validation_data"]["status"] = 'invalid'
+        return result
 
     header = get_dict(header)
     data = {filename: {}}
@@ -126,77 +77,33 @@ def parser(data, filename):
         row = line_to_array(row)
         sample_name = row[header['Sample Name']]
         marker = row[header['Marker']]
-        alleles = allele_in_dict(row, header)
+        alleles, allele_validate = allele_in_dict(row, header)
 
         if not data[filename].get(sample_name):
             data[filename][sample_name] = {marker: alleles}
         else:
             data[filename][sample_name][marker] = alleles
 
-    return {
-        "data": data,
-        "status": "valid",
-        "result": result
-    }
+        if allele_validate == 'partial_valid' and result['validation_data']['status'] == 'valid':
+            result['validation_data']['status'] = 'partial_valid'
+            result['validation_data']['data'].append({'sample_name': sample_name, 'marker': marker})
+        elif allele_validate == 'partial_valid':
+            result['validation_data']['data'].append({'sample_name': sample_name, 'marker': marker})
+
+    result['project'] = data
+    return result
 
 
-
-# def get_dict(header):
-#     d = {}
-#     for key in REQUIRED_KEYS:
-#         if key in header:
-#             d[key] = header.index(key)
-#     return d
-#
-#
-# def allele_in_list(row, d):
-#     alleles = []
-#     for i in range(ALLELE_COUNT):
-#         if f'Allele {i+1}' in d:
-#             alleles.append(row[d[f'Allele {i+1}']])
-#         else:
-#             alleles.append('')
-#     return alleles
-#
-#
-# def validate_and_convert(filename, file):
-#     rows = file.splitlines()
-#     header = rows[0].split('\t')
-#     validate = validate_fields(header)
-#     if validate:
-#         return validate
-#     d = get_dict(header)
-#     data = {filename: {}}
-#     for row in rows[1:]:
-#         row = row.split('\t')
-#         sample_name = row[d['Sample Name']]
-#         marker = row[d['Marker']]
-#         alleles = allele_in_list(row, d)
-#         if not data[filename].get(sample_name):
-#             data[filename][sample_name] = {marker: alleles}
-#         else:
-#             data[filename][sample_name][marker] = alleles
-#     return data
-#
-#
-# def upload_to_base(data, user_id):
-#     for file in data:
-#         project = Project.get_by_name(file, user_id)
-#         if project:
-#             project.delete()
-#         project = Project(name=file, user_id=user_id, load_at=datetime.utcnow())
-#         project.save()
-#         for sample in data[file]:
-#             g_object = Object(name=sample, project_id=project.id)
-#             g_object.save()
-#             for mark, al in data[file][sample].items():
-#                 marker = Marker(name=mark,
-#                                 object_id=g_object.id,
-#                                 allele_1=al[0],
-#                                 allele_2=al[1],
-#                                 allele_3=al[2],
-#                                 allele_4=al[3],
-#                                 allele_5=al[4],
-#                                 allele_6=al[5])
-#                 marker.save()
-#     return {"message": f"Файл успешно загружен"}
+def upload_to_base(data, user_id):
+    for file in data:
+        project = Project.get_by_name(file, user_id)
+        if project:
+            project.delete()
+        project = Project(name=file, user_id=user_id, load_at=datetime.utcnow())
+        project.save()
+        for sample in data[file]:
+            g_object = Object(name=sample, project_id=project.id)
+            g_object.save()
+            for mark, al in data[file][sample].items():
+                marker = Marker(object_id=g_object.id, name=mark, **al)
+                marker.save()

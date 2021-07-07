@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from .models import Project
-from .file_loader import parser
+from .file_loader import parser, upload_to_base
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 POSTS_PER_PAGE = 20
@@ -17,6 +17,8 @@ def upload():
     data = request.files.get('file').read().decode('utf-8')
     user_id = get_jwt_identity()
     data = parser(data=data, filename=filename)
+    upload_to_base(data=data["project"], user_id=user_id)
+
 
     return jsonify(data)
 
