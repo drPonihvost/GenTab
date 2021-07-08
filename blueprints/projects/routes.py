@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from .models import Project
-from .file_loader import parser, upload_to_base
+from .scripts import parser, upload_to_base
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 POSTS_PER_PAGE = 20

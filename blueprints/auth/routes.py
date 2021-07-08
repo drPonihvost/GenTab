@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from .models import User, Roles, Organizations, UserRoles
-from .schemas import Login
+from .schemas import Login, Registrations
 from pydantic import ValidationError
 from sqlalchemy.exc import NoResultFound
 
@@ -20,15 +20,14 @@ def get_token():
 
 @auth.route('/registrations', methods=['POST'])
 def registrations():
-    params = request.json
+    try:
+        params = Registrations(**request.json).dict()
+    except ValidationError as e:
+        return e.json(), 400
 
-    org = Organizations(name=params.get('org_name'))
+    org = Organizations(name=params.org_name)
     org.save()
-    user = User(email=params.get('email'),
-                password=params.get('password'),
-                name=params.get('name'),
-                surname=params.get('surname'),
-                organization_id=org.id)
+    user = User(**params)
     user.save()
     role = Roles()
     role.save()

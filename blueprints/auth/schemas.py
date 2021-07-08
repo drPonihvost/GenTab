@@ -23,6 +23,14 @@ class Login(SchemaModel):
         return values
 
 
+class Registrations(SchemaModel):
+    email: EmailStr
+    password: str
+    name: str
+    surname: str
+    org_name: str
+
+
 
 
 
