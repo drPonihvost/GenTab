@@ -31,6 +31,10 @@ class Registrations(SchemaModel):
     org_name: str
 
 
+# class Registrations(RegistrationsNoOrgName):
+#     org_name = str
+
+
 
 
 

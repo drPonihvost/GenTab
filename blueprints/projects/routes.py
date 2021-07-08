@@ -17,10 +17,12 @@ def upload():
     data = request.files.get('file').read().decode('utf-8')
     user_id = get_jwt_identity()
     data = parser(data=data, filename=filename)
+    validation_data = data.get('validation_data')
+
     upload_to_base(data=data["project"], user_id=user_id)
 
 
-    return jsonify(data)
+    return jsonify(validation_data)
 
 
 @projects.route('/projects/', methods=['GET', 'POST'])

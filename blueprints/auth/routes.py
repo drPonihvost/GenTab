@@ -21,13 +21,14 @@ def get_token():
 @auth.route('/registrations', methods=['POST'])
 def registrations():
     try:
-        params = Registrations(**request.json).dict()
+        org = Registrations(**request.json).dict(include={'org_name'})
+        params = Registrations(**request.json).dict(exclude={'org_name'})
     except ValidationError as e:
         return e.json(), 400
 
-    org = Organizations(name=params.org_name)
+    org = Organizations(name=org.get('org_name'))
     org.save()
-    user = User(**params)
+    user = User(organization_id=org.id, **params)
     user.save()
     role = Roles()
     role.save()
