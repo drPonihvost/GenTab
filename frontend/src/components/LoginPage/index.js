@@ -9,8 +9,8 @@ import { getToken } from '../../services';
 import styles from './styles.module.css';
 
 const LoginPage = () => {
-  const [ invalid, setInvalid ] = React.useState(false)
-  const { setAuth }= React.useContext(AuthContext);
+  const [invalid, setInvalid] = React.useState(false);
+  const { setAuth } = React.useContext(AuthContext);
 
   const handleLogin = async ({ username, password }) => {
     try {
@@ -27,33 +27,22 @@ const LoginPage = () => {
 
   const handleInputFocus = () => {
     setInvalid(false);
-  }
+  };
 
   return (
     <div className={styles.login}>
-      {
-        invalid && (
-          <Alert 
-            message="Неверный логин или пароль"
-            type="error"
-            showIcon 
-          />
-        )
-      }
-      <Form
-        name="login"
-        layout="vertical"
-        size="large"
-        onFinish={handleLogin}
-      >
+      {invalid && (
+        <Alert message="Неверный логин или пароль" type="error" showIcon />
+      )}
+      <Form name="login" layout="vertical" size="large" onFinish={handleLogin}>
         <Form.Item
           label="Имя"
           name="username"
           rules={[
             {
               required: true,
-              message: 'Обязательное поле',
-            },
+              message: 'Обязательное поле'
+            }
           ]}
         >
           <Input onFocus={handleInputFocus} />
@@ -65,8 +54,8 @@ const LoginPage = () => {
           rules={[
             {
               required: true,
-              message: 'Обязательное поле',
-            },
+              message: 'Обязательное поле'
+            }
           ]}
         >
           <Input.Password onFocus={handleInputFocus} />
@@ -84,7 +73,7 @@ const LoginPage = () => {
         </Form.Item>
       </Form>
     </div>
-  )
+  );
 };
 
 export { LoginPage };

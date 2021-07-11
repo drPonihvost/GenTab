@@ -8,29 +8,16 @@ import { MainPage } from './components/MainPage';
 const ProtectedRoute = ({ component: Component, auth, ...props }) => (
   <Route
     {...props}
-    render={
-      () => auth ? (
-        <Component />
-      ) : (
-        <Redirect to='/login' />
-      )
-    }
+    render={() => (auth ? <Component /> : <Redirect to="/login" />)}
   />
 );
 
 const ProtectedLogin = ({ component: Component, auth, ...props }) => (
   <Route
     {...props}
-    render={
-      () => auth ? (
-        <Redirect to='/' />
-      ) : (
-        <Component />
-      )
-    }
+    render={() => (auth ? <Redirect to="/" /> : <Component />)}
   />
 );
-
 
 const Routes = () => {
   const { auth } = React.useContext(AuthContext);
@@ -38,11 +25,11 @@ const Routes = () => {
   return (
     <BrowserRouter>
       <Switch>
-        <ProtectedLogin path='/login' component={LoginPage} auth={auth} />
-        <ProtectedRoute path='/' component={MainPage} auth={auth} />
+        <ProtectedLogin path="/login" component={LoginPage} auth={auth} />
+        <ProtectedRoute path="/" component={MainPage} auth={auth} />
       </Switch>
     </BrowserRouter>
   );
-}
+};
 
 export { Routes };

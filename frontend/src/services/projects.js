@@ -1,18 +1,20 @@
-import { REQUEST_URL, processRequest, getQuery, AUTH_HEADERS, COMMON_HEADERS } from './common';
+import {
+  REQUEST_URL,
+  processRequest,
+  getQuery,
+  AUTH_HEADERS,
+  COMMON_HEADERS
+} from './common';
 
 const uploadFile = (file) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  return fetch(
-    `${REQUEST_URL}/upload`,
-    {
-      headers: { ...AUTH_HEADERS },
-      method: 'POST',
-      body: formData
-    }
-  )
-    .then(processRequest);
+  return fetch(`${REQUEST_URL}/upload`, {
+    headers: { ...AUTH_HEADERS },
+    method: 'POST',
+    body: formData
+  }).then(processRequest);
 };
 
 const decodeProject = (project) => ({
@@ -33,7 +35,7 @@ const decodeProject = (project) => ({
       allele6: marker.allele_6
     }))
   }))
-})
+});
 
 const decodeProjects = (data) => ({
   page: data.page,
@@ -43,15 +45,12 @@ const decodeProjects = (data) => ({
 });
 
 export const getProjects = (params = {}) => {
-  return fetch(
-    `${REQUEST_URL}/projects/${getQuery(params)}`,
-    {
-      headers: { ...COMMON_HEADERS },
-      method: 'GET'
-    }
-  )
+  return fetch(`${REQUEST_URL}/projects/${getQuery(params)}`, {
+    headers: { ...COMMON_HEADERS },
+    method: 'GET'
+  })
     .then(processRequest)
-    .then(decodeProjects)
-}
+    .then(decodeProjects);
+};
 
 export { uploadFile };

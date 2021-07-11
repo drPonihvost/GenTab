@@ -15,20 +15,20 @@ const MainPage = () => {
 
   const handleAddClick = (object) => {
     setSelectedObject({ ...selectedObjects, [object.id]: object });
-  }
+  };
 
   const handleMergeClick = (object) => {
     setObjectToMerge({ ...objectsToMerge, [object.id]: object });
-  }
+  };
 
   const handleSelectedObjectsShow = () => {
     console.log('Когда-нить тут будет таблица');
-  }
+  };
 
   const handleObjectsToMergeShow = () => {
     console.log('Когда-нить тут будет таблица для мержа');
-  }
-  
+  };
+
   const selectedObjectsCount = Object.keys(selectedObjects).length;
   const objectsToMergeCount = Object.keys(objectsToMerge).length;
 
@@ -37,15 +37,11 @@ const MainPage = () => {
   return (
     <Layout className={styles.layout}>
       <div className={styles.fileUploadContainer}>
-        <Typography.Title level={4}>
-          Загрузка файла проекта
-        </Typography.Title>
+        <Typography.Title level={4}>Загрузка файла проекта</Typography.Title>
         <FileUpload className={styles.fileUpload} />
       </div>
       <div className={styles.projectsContainer}>
-        <Typography.Title level={4}>
-          Загруженные проекты
-        </Typography.Title>
+        <Typography.Title level={4}>Загруженные проекты</Typography.Title>
         <ProjectsList
           className={styles.projects}
           onAddClick={handleAddClick}
@@ -63,6 +59,6 @@ const MainPage = () => {
       </div>
     </Layout>
   );
-}
+};
 
 export { MainPage };

@@ -11,22 +11,33 @@ export const BottomPanel = ({
   onMergeObjectsShow,
   onSelectedShow
 }) => {
-  const selectedObjectsButtonTitle = selectedObjectsCount ?
-    `Показать результат (${selectedObjectsCount})` :
-    `Показать результат`;
+  const seletedObjectCommon = 'Показать результат';
+  const selectedObjectsButtonTitle = selectedObjectsCount
+    ? `${seletedObjectCommon} (${selectedObjectsCount})`
+    : seletedObjectCommon;
 
-  const objectsToMergeButtonTitle = objectsToMergeCount ?
-    `Показать объединения (${objectsToMergeCount})` :
-    `Показать объединения`;
+  const objectsToMergeCommon = 'Показать объединения';
+  const objectsToMergeButtonTitle = objectsToMergeCount
+    ? `${objectsToMergeCommon} (${objectsToMergeCount})`
+    : objectsToMergeCommon;
 
   return (
     <div className={`${styles.container} ${className}`}>
-      <Button type="primary" onClick={onSelectedShow} className={styles.showTableButton} disabled={!selectedObjectsCount}>
+      <Button
+        type="primary"
+        onClick={onSelectedShow}
+        className={styles.showTableButton}
+        disabled={!selectedObjectsCount}
+      >
         {selectedObjectsButtonTitle}
       </Button>
-      <Button type="secondary" onClick={onMergeObjectsShow} disabled={!objectsToMergeCount}>
+      <Button
+        type="secondary"
+        onClick={onMergeObjectsShow}
+        disabled={!objectsToMergeCount}
+      >
         {objectsToMergeButtonTitle}
       </Button>
     </div>
-  )
-}
+  );
+};

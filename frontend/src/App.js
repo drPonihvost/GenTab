@@ -7,12 +7,12 @@ import { AuthContext } from './Auth';
 import 'antd/dist/antd.css';
 
 const App = () => {
-  const [ auth, setAuth ] = React.useState(false);
+  const [auth, setAuth] = React.useState(false);
 
   React.useEffect(() => {
     if (cookie.get('token')) {
       setAuth(true);
-    };
+    }
   }, []);
 
   return (

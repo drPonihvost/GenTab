@@ -9,7 +9,7 @@ export const AUTH_HEADERS = {
 
 export const COMMON_HEADERS = {
   ...AUTH_HEADERS,
-  'Content-Type': 'application/json',
+  'Content-Type': 'application/json'
 };
 
 const processRequest = (response, opts = {}) => {
@@ -45,8 +45,8 @@ export const getQuery = (params = {}) => {
   const preparedParams = prepareParams(params);
 
   return Object.keys(preparedParams).length
-    ? `?${new URLSearchParams(preparedParams)}` : 
-    '';
+    ? `?${new URLSearchParams(preparedParams)}`
+    : '';
 };
 
 export { processRequest };

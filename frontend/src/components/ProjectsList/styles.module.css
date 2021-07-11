@@ -5,7 +5,7 @@
 }
 
 .row:not(:last-child) {
-    margin-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 .object {
