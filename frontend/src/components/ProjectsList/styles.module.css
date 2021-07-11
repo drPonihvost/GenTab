@@ -1,0 +1,41 @@
+.spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.object {
+  display: flex;
+  align-items: center;
+
+  margin: 0 16px 0 0;
+  padding: 4px;
+
+  min-height: 40px;
+}
+
+.object:hover {
+  background-color: #fafafa;
+  outline: 1px solid #d9d9d9;
+  cursor: pointer;
+}
+
+.controls {
+  margin-left: 8px;
+}
+
+.addButton {
+  margin-right: 4px;
+}
+
+.pager {
+  margin-top: 24px;
+}
+
+:global(.ant-input).filterInput {
+  margin-bottom: 16px;
+}

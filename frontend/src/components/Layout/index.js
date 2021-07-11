@@ -4,9 +4,9 @@ import { Avatar, Tooltip, PageHeader } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 
 import { AuthContext } from '../../Auth';
-import './styles.css';
+import styles from './styles.module.css';
 
-const Layout = ({ children }) => {
+const Layout = ({ children, className }) => {
   const { setAuth }= React.useContext(AuthContext);
 
   const handleLogout = () => {
@@ -15,16 +15,16 @@ const Layout = ({ children }) => {
   }
 
   return (
-    <div className="layout">
+    <div className={`${styles.layout} ${className}`}>
       <PageHeader
         title="Genotype"
         extra={[
           <Tooltip title="Выйти" key="avatar">
-            <Avatar icon={<UserOutlined />} onClick={handleLogout} className="layout-avatar" />
+            <Avatar icon={<UserOutlined />} onClick={handleLogout} className={styles.avatar} />
           </Tooltip >
         ]}
       />
-      <div className="layout-content">{children}</div>
+      <div className={styles.content}>{children}</div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import cookie from 'js-cookie';
 
+// TODO: Перенести это в env
 export const REQUEST_URL = 'http://127.0.0.1:5000';
 
 export const AUTH_HEADERS = {
@@ -26,6 +27,26 @@ const processRequest = (response, opts = {}) => {
   }
 
   throw new Error(response.statusText);
+};
+
+export const prepareParams = (params = {}) => {
+  return Object.keys(params).reduce((acc, key) => {
+    if (!params[key]) {
+      return acc;
+    }
+
+    acc[key] = params[key];
+
+    return acc;
+  }, {});
+};
+
+export const getQuery = (params = {}) => {
+  const preparedParams = prepareParams(params);
+
+  return Object.keys(preparedParams).length
+    ? `?${new URLSearchParams(preparedParams)}` : 
+    '';
 };
 
 export { processRequest };

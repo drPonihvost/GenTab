@@ -1,2 +1,2 @@
 export { getToken } from './auth';
-export { uploadFile } from './projects';
+export { uploadFile, getProjects } from './projects';

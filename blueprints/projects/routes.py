@@ -23,18 +23,20 @@ def upload():
     return jsonify(user_id)
 
 
-@projects.route('/get_projects/', methods=['GET', 'POST'])
+@projects.route('/projects/', methods=['GET', 'POST'])
 @jwt_required()
 def get_projects():
     page = request.args.get('page', 0, type=int)
     user_id = get_jwt_identity()
-    project_query = request.args.get('name', type=str).strip()
+    project_query = (request.args.get('name', type=str) or '').strip()
     pag_config = {'page': page, 'per_page': POSTS_PER_PAGE, 'error_out': False}
     pagination = Project.filter_by_name(q=project_query, user_id=user_id).paginate(**pag_config)
-
+    
     return jsonify(
-        {'project': [project for project in pagination.items]},
-        {'total_items': pagination.total,
-         'page': pagination.page,
-         'page_size': pagination.per_page}
+        {
+            'project': [project for project in pagination.items],
+            'total_items': pagination.total,
+            'page': pagination.page,
+            'page_size': pagination.per_page
+         }
     )

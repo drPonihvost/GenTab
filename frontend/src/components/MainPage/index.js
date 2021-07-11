@@ -1,75 +1,65 @@
 import React from 'react';
 
-import { Upload, Typography, Button, message } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Typography } from 'antd';
 
-import { uploadFile } from '../../services';
 import { Layout } from '../Layout';
-import './styles.css';
+import { ProjectsList } from '../ProjectsList';
+import { FileUpload } from '../FileUpload';
+import { BottomPanel } from '../BottomPanel';
+
+import styles from './styles.module.css';
 
 const MainPage = () => {
-  const [ files, setFiles ] = React.useState([]);
-  const [ isLoading, setLoading ] = React.useState(false);
+  const [selectedObjects, setSelectedObject] = React.useState({});
+  const [objectsToMerge, setObjectToMerge] = React.useState({});
 
-  const handleUpload = async () => {
-    const [ file ] = files;
+  const handleAddClick = (object) => {
+    setSelectedObject({ ...selectedObjects, [object.id]: object });
+  }
 
-    setLoading(true);
+  const handleMergeClick = (object) => {
+    setObjectToMerge({ ...objectsToMerge, [object.id]: object });
+  }
 
-    try {
-      await uploadFile(file);
-      
-      setLoading(false);
-      setFiles([]);
-    } catch (e) {
-      setLoading(false);
-      message.error(e.message);
-    }
-  };
+  const handleSelectedObjectsShow = () => {
+    console.log('Когда-нить тут будет таблица');
+  }
 
-  const handleRemove = (file) => {
-    setFiles([]);
-  };
+  const handleObjectsToMergeShow = () => {
+    console.log('Когда-нить тут будет таблица для мержа');
+  }
+  
+  const selectedObjectsCount = Object.keys(selectedObjects).length;
+  const objectsToMergeCount = Object.keys(objectsToMerge).length;
 
-  const handleBeforeUpload = (file) => {
-    const isValid = file.type === 'text/plain';
-    
-    if (!isValid) {
-      message.error(`${file.name} не является txt файлом`);
-
-      return false;
-    }
-
-    setFiles([ file ]);
-
-    return false;
-  };
+  const showBottomPanel = Boolean(selectedObjectsCount || objectsToMergeCount);
 
   return (
-    <Layout>
-      <div className="main-upload">
+    <Layout className={styles.layout}>
+      <div className={styles.fileUploadContainer}>
         <Typography.Title level={4}>
           Загрузка файла проекта
         </Typography.Title>
-        <Upload
-            name="file"
-            disabled={isLoading}
-            maxCount={1}
-            onRemove={handleRemove}
-            beforeUpload={handleBeforeUpload}
-            fileList={files}
-        >
-          <Button icon={<UploadOutlined />}>Выберите файл</Button>
-        </Upload>
-        <Button
-          disabled={!files.length}
-          loading={isLoading} 
-          type="primary" 
-          className="main-upload-button"
-          onClick={handleUpload}
-        >
-          {isLoading ? 'Загружаем' : 'Загрузить'}
-        </Button>
+        <FileUpload className={styles.fileUpload} />
+      </div>
+      <div className={styles.projectsContainer}>
+        <Typography.Title level={4}>
+          Загруженные проекты
+        </Typography.Title>
+        <ProjectsList
+          className={styles.projects}
+          onAddClick={handleAddClick}
+          onMergeClick={handleMergeClick}
+        />
+        {showBottomPanel && (
+          <BottomPanel
+            className={styles.bottomPanel}
+            selectedObjectsCount={selectedObjectsCount}
+            objectsToMergeCount={objectsToMergeCount}
+            onSelectedShow={handleSelectedObjectsShow}
+            onMergeObjectsShow={handleObjectsToMergeShow}
+          />
+        )}
       </div>
     </Layout>
   );

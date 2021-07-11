@@ -6,7 +6,7 @@ import { Form, Input, Button, Alert } from 'antd';
 import { AuthContext } from '../../Auth';
 import { getToken } from '../../services';
 
-import './styles.css';
+import styles from './styles.module.css';
 
 const LoginPage = () => {
   const [ invalid, setInvalid ] = React.useState(false)
@@ -30,7 +30,7 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="login">
+    <div className={styles.login}>
       {
         invalid && (
           <Alert 
@@ -76,7 +76,7 @@ const LoginPage = () => {
           <Button
             type="primary"
             htmlType="submit"
-            className="login-submit"
+            className={styles.submit}
             block
           >
             Войти
