@@ -1,7 +1,6 @@
 from .models import Project, Object, Marker
 from datetime import datetime
 
-
 ALLELE_COUNT = 6
 REQUIRED_KEYS = ['Sample Name',
                  'Marker',
@@ -41,8 +40,8 @@ def allele_in_dict(row, header):
     alleles = {}
     allele_validate = 'valid'
     for i in range(ALLELE_COUNT):
-        base_key = f'allele_{i+1}'
-        file_key = f'Allele {i+1}'
+        base_key = f'allele_{i + 1}'
+        file_key = f'Allele {i + 1}'
         if file_key in header:
             value = row[header.get(file_key)]
             alleles[base_key] = value
@@ -54,13 +53,10 @@ def allele_in_dict(row, header):
 
 
 def parser(data, filename):
-
-
-
     result = {
         "validation_data": {
             "status": 'valid',
-            'data':[]
+            'data': []
         },
         "project": {}
     }
@@ -94,12 +90,15 @@ def parser(data, filename):
     return result
 
 
-def upload_to_base(data, user_id):
+def upload_to_base(data, user_id, json):
     for file in data:
-        project = Project.get_by_name(file, user_id)
+        project = Project.get_user_projects(file, user_id)
         if project:
             project.delete()
-        project = Project(name=file, user_id=user_id, load_at=datetime.utcnow())
+        project = Project(name=file,
+                          user_id=user_id,
+                          load_at=datetime.utcnow(),
+                          validation_data=json)
         project.save()
         for sample in data[file]:
             g_object = Object(name=sample, project_id=project.id)
