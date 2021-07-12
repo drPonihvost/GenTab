@@ -2,6 +2,8 @@ import React from 'react';
 import { Typography } from 'antd';
 import omit from 'lodash/omit';
 
+import { mergeObjects } from '../../lib';
+
 import { Layout } from '../Layout';
 import { ProjectsList } from '../ProjectsList';
 import { FileUpload } from '../FileUpload';
@@ -16,15 +18,15 @@ const MainPage = () => {
   const [isMergeModalVisible, setMergeModalVisible] = React.useState(false);
 
   const handleAddClick = (object) => {
-    setSelectedObject({ ...selectedObjects, [object.id]: object });
+    setSelectedObject({ ...selectedObjects, [object.name]: object });
   };
 
   const handleMergeClick = (object) => {
-    setObjectToMerge({ ...objectsToMerge, [object.id]: object });
+    setObjectToMerge({ ...objectsToMerge, [object.name]: object });
   };
 
   const handleSelectedObjectsShow = () => {
-    console.log('Когда-нить тут будет таблица');
+    console.log(selectedObjects);
   };
 
   const handleObjectsToMergeShow = () => {
@@ -41,7 +43,14 @@ const MainPage = () => {
   };
 
   const handleObjectsToMergeAdd = () => {
-    // Логика добавления будет тут
+    const resultObject = mergeObjects(objectsToMerge);
+
+    setSelectedObject({
+      ...selectedObjects,
+      [resultObject.name]: resultObject
+    });
+
+    handleObjectsToMergeFlush();
   };
 
   const handleObjectsToMergeDelete = (objectName) => {
