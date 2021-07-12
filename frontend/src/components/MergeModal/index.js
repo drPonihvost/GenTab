@@ -17,6 +17,7 @@ export const MergeModal = ({
     title="Объекты для объединения"
     visible={visible}
     onCancel={onCancel}
+    centered
     footer={[
       <Button key="flush" danger onClick={onFlush}>
         Очистить всё
@@ -26,21 +27,19 @@ export const MergeModal = ({
       </Button>
     ]}
   >
-    <>
-      {Object.keys(items).map((objectName) => (
-        <div key={objectName} className={styles.object}>
-          <div className={styles.delete}>{items[objectName].name}</div>
-          <Button
-            key="flash"
-            type="secondary"
-            size="small"
-            danger
-            onClick={() => onDelete(objectName)}
-          >
-            <MinusOutlined />
-          </Button>
-        </div>
-      ))}
-    </>
+    {Object.keys(items).map((objectName) => (
+      <div key={objectName} className={styles.object}>
+        <div className={styles.delete}>{items[objectName].name}</div>
+        <Button
+          key="flash"
+          type="secondary"
+          size="small"
+          danger
+          onClick={() => onDelete(objectName)}
+        >
+          <MinusOutlined />
+        </Button>
+      </div>
+    ))}
   </Modal>
 );

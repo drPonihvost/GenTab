@@ -6,7 +6,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { AuthContext } from '../../Auth';
 import styles from './styles.module.css';
 
-const Layout = ({ children, className }) => {
+const Layout = ({ children, className = '' }) => {
   const { setAuth } = React.useContext(AuthContext);
 
   const handleLogout = () => {

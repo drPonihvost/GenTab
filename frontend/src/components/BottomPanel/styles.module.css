@@ -1,4 +1,7 @@
 .container {
+  display: flex;
+  justify-content: center;
+
   background-color: #fff;
   padding: 16px 24px;
 }
