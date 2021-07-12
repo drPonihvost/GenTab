@@ -1,0 +1,12 @@
+.object {
+  display: flex;
+  justify-content: space-between;
+}
+
+.object:not(:last-child) {
+  margin-bottom: 8px;
+}
+
+.delete {
+  font-weight: 500;
+}

@@ -1,17 +1,19 @@
 import React from 'react';
-
 import { Typography } from 'antd';
+import omit from 'lodash/omit';
 
 import { Layout } from '../Layout';
 import { ProjectsList } from '../ProjectsList';
 import { FileUpload } from '../FileUpload';
 import { BottomPanel } from '../BottomPanel';
+import { MergeModal } from '../MergeModal';
 
 import styles from './styles.module.css';
 
 const MainPage = () => {
   const [selectedObjects, setSelectedObject] = React.useState({});
   const [objectsToMerge, setObjectToMerge] = React.useState({});
+  const [isMergeModalVisible, setMergeModalVisible] = React.useState(false);
 
   const handleAddClick = (object) => {
     setSelectedObject({ ...selectedObjects, [object.id]: object });
@@ -26,7 +28,30 @@ const MainPage = () => {
   };
 
   const handleObjectsToMergeShow = () => {
-    console.log('Когда-нить тут будет таблица для мержа');
+    setMergeModalVisible(true);
+  };
+
+  const handleObjectsToMergeHide = () => {
+    setMergeModalVisible(false);
+  };
+
+  const handleObjectsToMergeFlush = () => {
+    setObjectToMerge({});
+    setMergeModalVisible(false);
+  };
+
+  const handleObjectsToMergeAdd = () => {
+    // Логика добавления будет тут
+  };
+
+  const handleObjectsToMergeDelete = (objectName) => {
+    const result = omit(objectsToMerge, objectName);
+
+    if (!Object.keys(result).length) {
+      setMergeModalVisible(false);
+    }
+
+    setObjectToMerge(result);
   };
 
   const selectedObjectsCount = Object.keys(selectedObjects).length;
@@ -57,6 +82,14 @@ const MainPage = () => {
           />
         )}
       </div>
+      <MergeModal
+        visible={isMergeModalVisible}
+        onFlush={handleObjectsToMergeFlush}
+        onAdd={handleObjectsToMergeAdd}
+        onCancel={handleObjectsToMergeHide}
+        onDelete={handleObjectsToMergeDelete}
+        items={objectsToMerge}
+      />
     </Layout>
   );
 };
