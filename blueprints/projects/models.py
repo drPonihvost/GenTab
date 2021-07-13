@@ -17,11 +17,11 @@ class Project(BaseModel):
         return f'<id: {self.id}, name: {self.name}, user_id: {self.user_id}, load_at: {self.load_at}>'
 
     @classmethod
-    def get_user_projects(cls, name, user_id):
+    def get_by_user(cls, name, user_id):
         return cls.query.filter_by(name=name, user_id=user_id).first()
 
     @classmethod
-    def filter_user_projects(cls, q, user_id):
+    def filter_by_user(cls, q, user_id):
         return cls.query.filter(cls.name.contains(q), cls.user_id == user_id)
 
     id: int

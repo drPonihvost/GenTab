@@ -27,7 +27,7 @@ def registrations():
     except ValidationError as e:
         return e.json(), 400
 
-    org = Organizations.get_org(**org_in_query)
+    org = Organizations.get_by_name(**org_in_query)
     if not org:
         org = Organizations(name=org_in_query['org_name'])
         org.save()

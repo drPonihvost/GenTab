@@ -90,19 +90,19 @@ def parser(data, filename):
     return result
 
 
-def upload_to_base(data, user_id, json):
-    for file in data:
-        project = Project.get_user_projects(file, user_id)
+def upload_to_base(data, user_id):
+    for file in data['project']:
+        project = Project.get_by_user(file, user_id)
         if project:
             project.delete()
         project = Project(name=file,
                           user_id=user_id,
                           load_at=datetime.utcnow(),
-                          validation_data=json)
+                          validation_data=data['validation_data'])
         project.save()
-        for sample in data[file]:
+        for sample in data['project'][file]:
             g_object = Object(name=sample, project_id=project.id)
             g_object.save()
-            for mark, al in data[file][sample].items():
+            for mark, al in data['project'][file][sample].items():
                 marker = Marker(object_id=g_object.id, name=mark, **al)
                 marker.save()

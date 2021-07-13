@@ -29,7 +29,7 @@ class Registrations(SchemaModel):
 
     @validator('email')
     def validate_email(cls, v: str) -> str:
-        user = User.get_email(v)
+        user = User.get_by_email(v)
         if user:
             raise ValueError('This user already exists')
         return v

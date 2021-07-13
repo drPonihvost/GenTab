@@ -18,7 +18,7 @@ class Organizations(BaseModel):
     name = db.Column(db.String())
 
     @classmethod
-    def get_org(cls, org_name):
+    def get_by_name(cls, org_name):
         try:
             org = cls.query.filter_by(name=org_name).one()
         except NoResultFound:
@@ -48,7 +48,7 @@ class User(BaseModel):
         return token
 
     @classmethod
-    def get_email(cls, email):
+    def get_by_email(cls, email):
         try:
             user = cls.query.filter_by(email=email).one()
         except NoResultFound:
@@ -57,7 +57,7 @@ class User(BaseModel):
 
     @classmethod
     def authenticate(cls, email, password):
-        user = cls.get_email(email=email)
+        user = cls.get_by_email(email=email)
         if not user:
             raise UserError
 

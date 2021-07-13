@@ -19,7 +19,7 @@ def upload():
     data = parser(data=data, filename=filename)
     validation_data = data.get('validation_data')
 
-    upload_to_base(data=data["project"], user_id=user_id, json=data["validation_data"])
+    upload_to_base(data=data, user_id=user_id)
 
     return jsonify(validation_data)
 
@@ -29,9 +29,13 @@ def upload():
 def get_projects():
     page = request.args.get('page', 0, type=int)
     user_id = get_jwt_identity()
-    project_query = request.args.get('name', type=str).strip()
+    project_query = request.args.get('name', type=str)
+    if project_query and project_query.isalnum():
+        project_query.strip()
+    else:
+        project_query = ''
     pagination_config = {'page': page, 'per_page': POSTS_PER_PAGE, 'error_out': False}
-    pagination = Project.filter_user_projects(q=project_query, user_id=user_id).paginate(**pagination_config)
+    pagination = Project.filter_by_user(q=project_query, user_id=user_id).paginate(**pagination_config)
 
     return jsonify(
         {'project': [project for project in pagination.items],
