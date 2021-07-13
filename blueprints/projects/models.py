@@ -1,7 +1,5 @@
-from datetime import datetime
 from base.base_models import BaseModel, db
 from dataclasses import dataclass
-
 
 
 @dataclass
@@ -11,6 +9,7 @@ class Project(BaseModel):
                         db.ForeignKey('user.id'),
                         nullable=False)
     load_at = db.Column(db.DateTime)
+    validation_data = db.Column(db.JSON)
 
     object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
 
@@ -18,16 +17,17 @@ class Project(BaseModel):
         return f'<id: {self.id}, name: {self.name}, user_id: {self.user_id}, load_at: {self.load_at}>'
 
     @classmethod
-    def get_by_name(cls, name, user_id):
+    def get_by_user(cls, name, user_id):
         return cls.query.filter_by(name=name, user_id=user_id).first()
 
     @classmethod
-    def filter_by_name(cls, q, user_id):
+    def filter_by_user(cls, q, user_id):
         return cls.query.filter(cls.name.contains(q), cls.user_id == user_id)
 
     id: int
     name: str
     load_at: load_at
+    validation_data: str
     object: 'Object'
 
 

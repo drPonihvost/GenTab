@@ -1,29 +1,37 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from .models import User, Roles, Organizations, UserRoles
+from .schemas import Login, Registrations
+from pydantic import ValidationError
 
 auth = Blueprint('auth', __name__)
 
 
 @auth.route('/token', methods=['POST'])
 def get_token():
-    params = request.json
-    user = User.authenticate(email=params.get('username'),
-                             password=params.get('password'))
-    if not user:
-        return jsonify({'message': 'No auth data'}), 400
+    try:
+        params = Login(**request.json).dict()
+    except ValidationError as e:
+        return e.json(), 400
+    else:
+        user = User.authenticate(**params)
+
     token = user.get_token()
-    return {"token": token}
+    return {"access_token": token}
+
 
 @auth.route('/registrations', methods=['POST'])
 def registrations():
-    params = request.json
-    org = Organizations(name=params.get('org_name'))
-    org.save()
-    user = User(email=params.get('email'),
-                password=params.get('password'),
-                name=params.get('name'),
-                surname=params.get('surname'),
-                organization_id=org.id)
+    try:
+        org_in_query = Registrations(**request.json).dict(include={'org_name'})
+        params = Registrations(**request.json).dict(exclude={'org_name'})
+    except ValidationError as e:
+        return e.json(), 400
+
+    org = Organizations.get_by_name(**org_in_query)
+    if not org:
+        org = Organizations(name=org_in_query['org_name'])
+        org.save()
+    user = User(organization_id=org.id, **params)
     user.save()
     role = Roles()
     role.save()
