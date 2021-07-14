@@ -1,5 +1,6 @@
 from .models import Project, Object, Marker
 from datetime import datetime
+from base.data_base import db
 
 ALLELE_COUNT = 6
 REQUIRED_KEYS = ['Sample Name',
@@ -90,19 +91,45 @@ def parser(data, filename):
     return result
 
 
+
 def upload_to_base(data, user_id):
+    pjts = []
     for file in data['project']:
-        project = Project.get_by_user(file, user_id)
-        if project:
-            project.delete()
-        project = Project(name=file,
-                          user_id=user_id,
-                          load_at=datetime.utcnow(),
-                          validation_data=data['validation_data'])
-        project.save()
+        project = Project(name=file, user_id=user_id)
+        objects = []
         for sample in data['project'][file]:
-            g_object = Object(name=sample, project_id=project.id)
-            g_object.save()
+            markers = []
+            object = Object(name=sample)
             for mark, al in data['project'][file][sample].items():
-                marker = Marker(object_id=g_object.id, name=mark, **al)
-                marker.save()
+                markers.append(Marker(name=mark, **al))
+            object.marker = markers
+            objects.append(object)
+        project.object = object
+        pjts.append(project)
+    db.session.add_all(pjts)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rolback()
+        raise e
+
+
+
+
+
+# def upload_to_base(data, user_id):
+#     for file in data['project']:
+#         project = Project.get_by_user(file, user_id)
+#         if project:
+#             project.delete()
+#         project = Project(name=file,
+#                           user_id=user_id,
+#                           load_at=datetime.utcnow(),
+#                           validation_data=data['validation_data'])
+#         project.save()
+#         for sample in data['project'][file]:
+#             g_object = Object(name=sample, project_id=project.id)
+#             g_object.save()
+#             for mark, al in data['project'][file][sample].items():
+#                 marker = Marker(object_id=g_object.id, name=mark, **al)
+#                 marker.save()
