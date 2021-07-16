@@ -17,6 +17,8 @@ class PasswordError(Exception):
 class Organizations(BaseModel):
     name = db.Column(db.String())
 
+    # user = db.relationship('User', backref='organizations')
+
     @classmethod
     def get_by_name(cls, org_name):
         try:
@@ -34,6 +36,9 @@ class User(BaseModel):
     organization_id = db.Column(db.Integer,
                                 db.ForeignKey('organizations.id'),
                                 nullable=False)
+
+    org = db.relationship('Organizations', backref='user')
+    # user_role = db.relationship('UserRoles', backref='user')
 
     def __init__(self, *args, **kwargs):
         super(User, self).__init__(*args, **kwargs)
@@ -67,7 +72,14 @@ class User(BaseModel):
 
 
 class Roles(BaseModel):
-    name = db.Column(db.String(), default='User')
+    name = db.Column(db.String(), default='user')
+
+    @classmethod
+    def find_role(cls):
+        role = cls.query.filter_by(name='user').one()
+        return role.id
+
+
 
 
 class UserRoles(BaseModel):
@@ -76,5 +88,8 @@ class UserRoles(BaseModel):
                         db.ForeignKey('user.id'),
                         nullable=False)
     role_id = db.Column(db.Integer,
-                        db.ForeignKey('user.id'),
+                        db.ForeignKey('roles.id'),
                         nullable=False)
+
+    user = db.relationship('User', backref='user_roles')
+    role = db.relationship('Roles', backref='user_roles')
