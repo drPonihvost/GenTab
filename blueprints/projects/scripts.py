@@ -98,7 +98,8 @@ def upload_to_base(data, user_id):
             project.delete()
         project = Project(name=file,
                           user_id=user_id,
-                          load_at=datetime.utcnow())
+                          load_at=datetime.utcnow(),
+                          validation_data=data['validation_data'])
         objects = []
         for sample in data['project'][file]:
             markers = []

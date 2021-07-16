@@ -25,14 +25,6 @@ class BaseModel(db.Model):
                 raise e
         self.after_save()
 
-    def bulk_save(self, commit=True):
-        db.session.add_all(self)
-        if commit:
-            try:
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                raise e
 
     def before_update(self, *args, **kwargs):
         pass
