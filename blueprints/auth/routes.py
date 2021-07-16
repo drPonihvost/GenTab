@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from .models import User, Roles, Organizations, UserRoles
+from .models import User, Role, Organizations, UserRole
 from .schemas import Login, Registrations
 from pydantic import ValidationError
 from base.data_base import db
@@ -34,7 +34,7 @@ def registrations():
         org = Organizations(name=org_in_query['org_name'])
     user = User(**params)
     user.org = org
-    user_role = UserRoles(role_id=Roles.find_role())
+    user_role = UserRole(role_id=Role.find_user_id())
     user_role.user = user
     user.save()
 
