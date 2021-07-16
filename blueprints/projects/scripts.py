@@ -52,11 +52,28 @@ def allele_in_dict(row, header):
     return alleles, allele_validate
 
 
+def merge(old_alleles, new_alleles):
+    alleles = {**old_alleles, **new_alleles}
+    return alleles
+
+
+def comparison(old_alleles, new_alleles):
+    comparison = []
+    for allele, value in new_alleles.items():
+        if old_alleles[allele] != value:
+            comparison.append({'allele': allele,
+                               'allele_old': old_alleles[allele],
+                               'allele_new': value})
+    alleles = merge(old_alleles, new_alleles)
+    return alleles, comparison
+
+
 def parser(data, filename):
     result = {
-        "validation_data": {
-            "status": 'valid',
-            'data': []
+        'validation_data': {
+            'status': 'valid',
+            'OL_detect': [],
+            'merge_error': []
         },
         "project": {}
     }
@@ -70,6 +87,7 @@ def parser(data, filename):
     header = get_dict(header)
     data = {filename: {}}
     for row in rest:
+        comparison_validate = []
         row = line_to_array(row)
         sample_name = row[header['Sample Name']]
         marker = row[header['Marker']]
@@ -78,13 +96,27 @@ def parser(data, filename):
         if not data[filename].get(sample_name):
             data[filename][sample_name] = {marker: alleles}
         else:
+            if data[filename][sample_name].get(marker):
+                old_alleles = data[filename][sample_name][marker]
+                new_alleles, allele_validate = allele_in_dict(row, header)
+                alleles, comparison_validate = comparison(old_alleles, new_alleles)
+                if len(comparison_validate) > 0:
+                    allele_validate = 'partial_valid'
             data[filename][sample_name][marker] = alleles
 
         if allele_validate == 'partial_valid' and result['validation_data']['status'] == 'valid':
             result['validation_data']['status'] = 'partial_valid'
-            result['validation_data']['data'].append({'sample_name': sample_name, 'marker': marker})
+            result['validation_data']['OL_detect'].append({'sample_name': sample_name, 'marker': marker})
+            if len(comparison_validate) > 0:
+                result['validation_data']['merge_error'].append({'sample_name': sample_name,
+                                                                 'marker': marker,
+                                                                 'data': comparison_validate})
         elif allele_validate == 'partial_valid':
-            result['validation_data']['data'].append({'sample_name': sample_name, 'marker': marker})
+            result['validation_data']['OL_detect'].append({'sample_name': sample_name, 'marker': marker})
+            if len(comparison_validate) > 0:
+                result['validation_data']['merge_error'].append({'sample_name': sample_name,
+                                                                 'marker': marker,
+                                                                 'data': comparison_validate})
 
     result['project'] = data
     return result
