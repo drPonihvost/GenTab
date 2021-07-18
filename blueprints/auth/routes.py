@@ -1,8 +1,7 @@
 from flask import Blueprint, request
-from .models import User, Role, Organizations, UserRole
+from .models import User, Role, Organization, UserRole
 from .schemas import Login, Registrations
 from pydantic import ValidationError
-from base.data_base import db
 
 
 auth = Blueprint('auth', __name__)
@@ -29,17 +28,14 @@ def registrations():
     except ValidationError as e:
         return e.json(), 400
 
-    org = Organizations.get_by_name(**org_in_query)
+    org = Organization.get_by_name(**org_in_query)
     if not org:
-        org = Organizations(name=org_in_query['org_name'])
+        org = Organization(name=org_in_query['org_name'])
     user = User(**params)
     user.org = org
     user_role = UserRole(role_id=Role.find_user_id())
     user_role.user = user
     user.save()
-
-
-
 
     token = user.get_token()
     return {"access_token": token}

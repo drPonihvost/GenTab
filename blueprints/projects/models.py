@@ -16,7 +16,6 @@ class Project(BaseModel):
     def __repr__(self):
         return f'<id: {self.id}, name: {self.name}, user_id: {self.user_id}, load_at: {self.load_at}>'
 
-
     @classmethod
     def get_by_user(cls, name, user_id):
         return cls.query.filter_by(name=name, user_id=user_id).first()

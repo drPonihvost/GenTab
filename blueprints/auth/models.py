@@ -14,7 +14,7 @@ class PasswordError(Exception):
     pass
 
 
-class Organizations(BaseModel):
+class Organization(BaseModel):
     name = db.Column(db.String())
 
     @classmethod
