@@ -12,7 +12,7 @@ projects = Blueprint('projects', __name__)
 @jwt_required()
 def upload():
     # проверка корректности файла
-
+    force_upload = request.args.get('force_upload')
     filename = request.files['file'].filename
     data = request.files.get('file').read().decode('utf-8')
     user_id = get_jwt_identity()
@@ -21,7 +21,12 @@ def upload():
 
     upload_to_base(data=data, user_id=user_id)
 
-    return jsonify(validation_data)
+    if force_upload:
+        return jsonify(validation_data), 200
+    elif validation_data['status'] == 'valid':
+        return jsonify(validation_data), 200
+    else:
+        return jsonify(validation_data), 400
 
 
 @projects.route('/projects/', methods=['GET', 'POST'])

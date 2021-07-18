@@ -72,7 +72,7 @@ def parser(data, filename):
     result = {
         'validation_data': {
             'status': 'valid',
-            'OL_detect': [],
+            'OL_detect': {},
             'merge_error': []
         },
         "project": {}
@@ -106,13 +106,19 @@ def parser(data, filename):
 
         if allele_validate == 'partial_valid' and result['validation_data']['status'] == 'valid':
             result['validation_data']['status'] = 'partial_valid'
-            result['validation_data']['OL_detect'].append({'sample_name': sample_name, 'marker': marker})
+            if not result['validation_data']['OL_detect'].get(sample_name):
+                result['validation_data']['OL_detect'][sample_name] = [marker]
+            else:
+                result['validation_data']['OL_detect'][sample_name].append(marker)
             if len(comparison_validate) > 0:
                 result['validation_data']['merge_error'].append({'sample_name': sample_name,
                                                                  'marker': marker,
                                                                  'data': comparison_validate})
         elif allele_validate == 'partial_valid':
-            result['validation_data']['OL_detect'].append({'sample_name': sample_name, 'marker': marker})
+            if not result['validation_data']['OL_detect'].get(sample_name):
+                result['validation_data']['OL_detect'][sample_name] = [marker]
+            else:
+                result['validation_data']['OL_detect'][sample_name].append(marker)
             if len(comparison_validate) > 0:
                 result['validation_data']['merge_error'].append({'sample_name': sample_name,
                                                                  'marker': marker,
