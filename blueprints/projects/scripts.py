@@ -91,6 +91,7 @@ def parser(data, filename):
 
 
 def upload_to_base(data, user_id):
+    projects = []
     for file in data['project']:
         project = Project.get_by_user(file, user_id)
         if project:
@@ -99,10 +100,14 @@ def upload_to_base(data, user_id):
                           user_id=user_id,
                           load_at=datetime.utcnow(),
                           validation_data=data['validation_data'])
-        project.save()
+        objects = []
         for sample in data['project'][file]:
-            g_object = Object(name=sample, project_id=project.id)
-            g_object.save()
+            markers = []
+            object = Object(name=sample)
             for mark, al in data['project'][file][sample].items():
-                marker = Marker(object_id=g_object.id, name=mark, **al)
-                marker.save()
+                markers.append(Marker(name=mark, **al))
+            object.marker = markers
+            objects.append(object)
+        project.object = objects
+        projects.append(project)
+    Project.bulk_save(projects)
