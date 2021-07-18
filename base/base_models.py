@@ -26,8 +26,8 @@ class BaseModel(db.Model):
         self.after_save()
 
     @classmethod
-    def bulk_save(cls, commit=True):
-        db.session.add_all(cls)
+    def bulk_save(cls, x, commit=True):
+        db.session.add_all(x)
         if commit:
             try:
                 db.session.commit()
