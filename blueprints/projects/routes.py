@@ -2,11 +2,16 @@ from flask import Blueprint, request, jsonify
 from .models import Project
 from .scripts import parser, upload_to_base
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from sqlalchemy.exc import SQLAlchemyError
+from error import AlchemyError
 
 POSTS_PER_PAGE = 20
 
 projects = Blueprint('projects', __name__)
 
+@projects.errorhandler(AlchemyError)
+def alchemy_error(e):
+    return jsonify(e.to_dict())
 
 @projects.route('/upload', methods=['POST'])
 @jwt_required()
@@ -19,14 +24,17 @@ def upload():
     data = parser(data=data, filename=filename)
     validation_data = data.get('validation_data')
 
-    upload_to_base(data=data, user_id=user_id)
+    try:
+        upload_to_base(data=data, user_id=user_id)
+    except SQLAlchemyError as e:
+        raise AlchemyError(payload=e)
 
-    if force_upload:
-        return jsonify(validation_data), 200
-    elif validation_data['status'] == 'valid':
-        return jsonify(validation_data), 200
-    else:
+    if validation_data['status'] == 'invalid':
         return jsonify(validation_data), 400
+    elif validation_data['status'] == 'partial_valid' and not force_upload:
+        return jsonify(validation_data), 400
+    else:
+        return jsonify(validation_data), 200
 
 
 @projects.route('/projects/', methods=['GET', 'POST'])

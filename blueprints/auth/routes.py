@@ -2,8 +2,6 @@ from flask import Blueprint, request
 from .models import User, Role, Organization, UserRole
 from .schemas import Login, Registrations
 from pydantic import ValidationError
-from base.data_base import db
-
 
 
 auth = Blueprint('auth', __name__)

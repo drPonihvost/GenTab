@@ -32,10 +32,10 @@ class User(BaseModel):
     surname = db.Column(db.String())
     email = db.Column(db.String(), unique=True)
     organization_id = db.Column(db.Integer,
-                                db.ForeignKey('organizations.id'),
+                                db.ForeignKey('organization.id'),
                                 nullable=False)
 
-    org = db.relationship('Organizations', backref='user')
+    org = db.relationship('Organization', backref='user')
 
     def __init__(self, *args, **kwargs):
         super(User, self).__init__(*args, **kwargs)
@@ -78,12 +78,12 @@ class Role(BaseModel):
 
 
 class UserRole(BaseModel):
-    __table_name__ = 'user_roles'
+    __table_name__ = 'user_role'
     user_id = db.Column(db.Integer,
                         db.ForeignKey('user.id'),
                         nullable=False)
     role_id = db.Column(db.Integer,
-                        db.ForeignKey('roles.id'),
+                        db.ForeignKey('role.id'),
                         nullable=False)
 
     user = db.relationship('User', backref='user_role')

@@ -18,8 +18,8 @@ def line_to_array(line):
 
 def validator(value):
     if value == 'OL':
-        return 'partial_valid'
-    return 'valid'
+        return False
+    return True
 
 
 def validate_fields(header):
@@ -38,18 +38,30 @@ def get_dict(header):
 
 def allele_in_dict(row, header):
     alleles = {}
-    allele_validate = 'valid'
+    ol_validate = True
     for i in range(ALLELE_COUNT):
         base_key = f'allele_{i + 1}'
         file_key = f'Allele {i + 1}'
         if file_key in header:
             value = row[header.get(file_key)]
             alleles[base_key] = value
-            if allele_validate == 'valid':
-                allele_validate = validator(value)
+            if ol_validate:
+                ol_validate = validator(value)
         else:
             alleles[base_key] = ''
-    return alleles, allele_validate
+    return alleles, ol_validate
+
+
+def merge_validator(comparison_data):
+    if len(comparison_data) > 0:
+        return False
+    return True
+
+
+def total_validator(*args):
+    if False in args:
+        return False
+    return True
 
 
 def merge(old_alleles, new_alleles):
@@ -58,14 +70,16 @@ def merge(old_alleles, new_alleles):
 
 
 def comparison(old_alleles, new_alleles):
-    comparison = []
+    comparison_validate = []
     for allele, value in new_alleles.items():
         if old_alleles[allele] != value:
-            comparison.append({'allele': allele,
-                               'allele_old': old_alleles[allele],
-                               'allele_new': value})
+            comparison_validate.append({
+                'allele': allele,
+                'allele_old': old_alleles[allele],
+                'allele_new': value
+            })
     alleles = merge(old_alleles, new_alleles)
-    return alleles, comparison
+    return alleles, comparison_validate
 
 
 def parser(data, filename):
@@ -86,43 +100,45 @@ def parser(data, filename):
 
     header = get_dict(header)
     data = {filename: {}}
+
     for row in rest:
-        comparison_validate = []
+        merge_validate = True
         row = line_to_array(row)
         sample_name = row[header['Sample Name']]
         marker = row[header['Marker']]
-        alleles, allele_validate = allele_in_dict(row, header)
+        alleles, ol_validate = allele_in_dict(row, header)
 
         if not data[filename].get(sample_name):
             data[filename][sample_name] = {marker: alleles}
         else:
             if data[filename][sample_name].get(marker):
                 old_alleles = data[filename][sample_name][marker]
-                new_alleles, allele_validate = allele_in_dict(row, header)
-                alleles, comparison_validate = comparison(old_alleles, new_alleles)
-                if len(comparison_validate) > 0:
-                    allele_validate = 'partial_valid'
+                new_alleles, ol_validate = allele_in_dict(row, header)
+                alleles, comparison_data = comparison(old_alleles, new_alleles)
+                merge_validate = merge_validator(comparison_data)
             data[filename][sample_name][marker] = alleles
 
-        if allele_validate == 'partial_valid' and result['validation_data']['status'] == 'valid':
+        total_validate = total_validator(ol_validate, merge_validate)
+
+        if not total_validate and result['validation_data']['status'] == 'valid':
             result['validation_data']['status'] = 'partial_valid'
-            if not result['validation_data']['OL_detect'].get(sample_name):
-                result['validation_data']['OL_detect'][sample_name] = [marker]
-            else:
-                result['validation_data']['OL_detect'][sample_name].append(marker)
-            if len(comparison_validate) > 0:
-                result['validation_data']['merge_error'].append({'sample_name': sample_name,
-                                                                 'marker': marker,
-                                                                 'data': comparison_validate})
-        elif allele_validate == 'partial_valid':
-            if not result['validation_data']['OL_detect'].get(sample_name):
-                result['validation_data']['OL_detect'][sample_name] = [marker]
-            else:
-                result['validation_data']['OL_detect'][sample_name].append(marker)
-            if len(comparison_validate) > 0:
-                result['validation_data']['merge_error'].append({'sample_name': sample_name,
-                                                                 'marker': marker,
-                                                                 'data': comparison_validate})
+
+        if result['validation_data']['OL_detect'].get(sample_name) and ol_validate:
+            if result['validation_data']['OL_detect'].get(sample_name).count(marker) > 0:
+                x = result['validation_data']['OL_detect'].get(sample_name)
+                x.pop(x.index(marker))
+                if len(x) == 0:
+                    result['validation_data']['OL_detect'].pop(sample_name)
+
+        if not result['validation_data']['OL_detect'].get(sample_name) and not ol_validate:
+            result['validation_data']['OL_detect'][sample_name] = [marker]
+        elif not ol_validate:
+            result['validation_data']['OL_detect'][sample_name].append(marker)
+
+        if not merge_validate:
+            result['validation_data']['merge_error'].append({'sample_name': sample_name,
+                                                             'marker': marker,
+                                                             'data': comparison_data})
 
     result['project'] = data
     return result
@@ -138,14 +154,14 @@ def upload_to_base(data, user_id):
                           user_id=user_id,
                           load_at=datetime.utcnow(),
                           validation_data=data['validation_data'])
-        objects = []
-        for sample in data['project'][file]:
+        samples = []
+        for item in data['project'][file]:
             markers = []
-            object = Object(name=sample)
-            for mark, al in data['project'][file][sample].items():
+            sample = Object(name=item)
+            for mark, al in data['project'][file][item].items():
                 markers.append(Marker(name=mark, **al))
-            object.marker = markers
-            objects.append(object)
-        project.object = objects
+            sample.marker = markers
+            samples.append(sample)
+        project.object = samples
         projects.append(project)
     Project.bulk_save(projects)

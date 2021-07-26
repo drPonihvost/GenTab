@@ -16,14 +16,6 @@ class Project(BaseModel):
     def __repr__(self):
         return f'<id: {self.id}, name: {self.name}, user_id: {self.user_id}, load_at: {self.load_at}>'
 
-    def bulk_save(self, commit=True):
-        db.session.add_all(self)
-        if commit:
-            try:
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                raise e
 
     @classmethod
     def get_by_user(cls, name, user_id):
