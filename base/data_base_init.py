@@ -13,3 +13,15 @@ db.create_all(app=create_app())
 Role(name="admin").save()
 Role(name="moder").save()
 Role(name="user").save()
+
+org = Organization(name="ЭКЦ")
+user = User(
+    email='testuser@gmail.com',
+    password='12345678',
+    name='Testuser',
+    surname='Testuser'
+)
+user.org = org
+user_role = UserRole(role_id=Role.find_user_id())
+user_role.user = user
+user.save()
