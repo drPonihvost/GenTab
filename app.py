@@ -11,8 +11,6 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    client = app.test_client()
-
     app.register_blueprint(auth)
     app.register_blueprint(projects)
 
