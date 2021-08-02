@@ -7,8 +7,8 @@ from blueprints.projects.models import *
 load_dotenv()
 app = create_app()
 app.app_context().push()
-db.drop_all(app=create_app())
-db.create_all(app=create_app())
+db.drop_all(app=app)
+db.create_all(app=app)
 
 Role(name="admin").save()
 Role(name="moder").save()
