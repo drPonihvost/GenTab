@@ -1,10 +1,11 @@
 import requests
-from flask import request
+from flask import json, jsonify
 from app import create_app
 from base.data_base import db
 from dotenv import load_dotenv
 from blueprints.auth.models import *
 from blueprints.projects.models import *
+
 
 load_dotenv()
 app = create_app(test=True)
@@ -64,7 +65,16 @@ token = client.get(
                 "password": "12345678"
             }
         )
-print(token.text())
+data = json.loads(token.data)
+print(data)
+token = token.get_json()
+token = token['access_token']
+
+file = {'file': open('test projects/test_partial_valid.txt')}
+upload = client.post('/upload', data={'file': open('test projects/test_partial_valid.txt')}, headers={"Authorization": f"Bearer {token}"})
+
+projects = client.get('/projects/', headers={"Authorization": f"Bearer {token}"})
+print(projects.get_json())
 
 
 
