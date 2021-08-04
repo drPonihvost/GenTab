@@ -6,6 +6,7 @@ node_modules
 gentab.db
 test_projects/
 test.db
+.pytest_cache
 
 *.pyc
 __pycache__/

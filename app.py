@@ -7,7 +7,7 @@ from blueprints.projects.routes import projects
 from base.data_base import db
 
 
-def create_app(test=False):
+def create_app():
     app = Flask(__name__)
     CORS(app)
 
@@ -17,9 +17,6 @@ def create_app(test=False):
     # config
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('PROJECT_DATA_BASE')
-    if test:
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('TEST_PROJECT_DATA_BASE')
-        print("Создана тестовая база")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
