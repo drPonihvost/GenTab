@@ -82,24 +82,30 @@ def comparison(old_alleles, new_alleles):
     return alleles, comparison_validate
 
 
-def parser(data, filename):
-    result = {
+def form_result(status, ol_detect, merge_error, project):
+    return {
         'validation_data': {
-            'status': 'valid',
-            'OL_detect': {},
-            'merge_error': []
+            'status': status,
+            'OL_detect': ol_detect,
+            'merge_error': merge_error
         },
-        "project": {}
+        "project": project
     }
+
+
+def parser(data, filename):
+    status = 'valid'
+    ol_detect = {}
+    merge_error = []
+    project = {filename: {}}
 
     keys_line, *rest = data.splitlines()
     header = line_to_array(keys_line)
     if validate_fields(header) == 'invalid':
-        result["validation_data"]["status"] = 'invalid'
-        return result
+        status = 'invalid'
+        return form_result(status, ol_detect, merge_error, project)
 
     header = get_dict(header)
-    data = {filename: {}}
 
     for row in rest:
         merge_validate = True
@@ -108,40 +114,43 @@ def parser(data, filename):
         marker = row[header['Marker']]
         alleles, ol_validate = allele_in_dict(row, header)
 
-        if not data[filename].get(sample_name):
-            data[filename][sample_name] = {marker: alleles}
+        if not project[filename].get(sample_name):
+            project[filename][sample_name] = {marker: alleles}
         else:
-            if data[filename][sample_name].get(marker):
-                old_alleles = data[filename][sample_name][marker]
+            if project[filename][sample_name].get(marker):
+                old_alleles = project[filename][sample_name][marker]
                 new_alleles, ol_validate = allele_in_dict(row, header)
                 alleles, comparison_data = comparison(old_alleles, new_alleles)
                 merge_validate = merge_validator(comparison_data)
-            data[filename][sample_name][marker] = alleles
+            project[filename][sample_name][marker] = alleles
 
         total_validate = total_validator(ol_validate, merge_validate)
 
-        if not total_validate and result['validation_data']['status'] == 'valid':
-            result['validation_data']['status'] = 'partial_valid'
+        if not total_validate and status == 'valid':
+            status = 'partial_valid'
 
-        if result['validation_data']['OL_detect'].get(sample_name) and ol_validate:
-            if result['validation_data']['OL_detect'].get(sample_name).count(marker) > 0:
-                x = result['validation_data']['OL_detect'].get(sample_name)
+        if ol_detect.get(sample_name) and ol_validate:
+            if ol_detect.get(sample_name).count(marker) > 0:
+                x = ol_detect.get(sample_name)
                 x.pop(x.index(marker))
                 if len(x) == 0:
-                    result['validation_data']['OL_detect'].pop(sample_name)
+                    ol_detect.pop(sample_name)
 
-        if not result['validation_data']['OL_detect'].get(sample_name) and not ol_validate:
-            result['validation_data']['OL_detect'][sample_name] = [marker]
+        if not ol_detect.get(sample_name) and not ol_validate:
+            ol_detect[sample_name] = [marker]
         elif not ol_validate:
-            result['validation_data']['OL_detect'][sample_name].append(marker)
+            ol_detect[sample_name].append(marker)
 
         if not merge_validate:
-            result['validation_data']['merge_error'].append({'sample_name': sample_name,
-                                                             'marker': marker,
-                                                             'data': comparison_data})
+            merge_error.append(
+                {
+                    'sample_name': sample_name,
+                    'marker': marker,
+                    'data': comparison_data
+                }
+            )
 
-    result['project'] = data
-    return result
+    return form_result(status, ol_detect, merge_error, project)
 
 
 def upload_to_base(data, user_id):
