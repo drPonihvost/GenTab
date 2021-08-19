@@ -37,7 +37,6 @@ class TestParserPartialValid:
     def test_parser(self):
         assert self.data['project'][self.filename]['1']['D3S1358'] == init_case(allele_1='15', allele_2='16')
 
-
     def test_parser_ol(self):
         assert self.data['project'][self.filename]['2']['D3S1358'] == init_case(allele_1='15', allele_2='OL')
         assert self.data['validation_data']['OL_detect']['2'][0] == 'D3S1358'
@@ -45,6 +44,14 @@ class TestParserPartialValid:
     def test_parser_merge(self):
         assert self.data['project'][self.filename]['3']['D3S1358'] == init_case(allele_1='14', allele_2='15')
         assert not self.data['validation_data']['merge_error'][0]['sample_name'] == '3'
+
+    def test_parser_merge_discrepancy(self):
+        assert self.data['project'][self.filename]['4']['D3S1358'] == init_case(allele_1='15', allele_2='16')
+        assert self.data['validation_data']['merge_error'][0]['sample_name'] == '4'
+
+    def test_parser_merge_discrepancy_add(self):
+        assert self.data['project'][self.filename]['5']['D3S1358'] == init_case(allele_1='16', allele_2='17', allele_3='18')
+        assert self.data['validation_data']
 
 
 
