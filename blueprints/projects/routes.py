@@ -28,19 +28,23 @@ def upload():
         data = parser(data=data, filename=filename)
     except Exception:
         raise UnexpectedError()
-    validation_data = data.get('validation_data')
+
+    validation = {
+        'validation_data': data.get('validation_data'),
+        'object_list': data.get('object_list')
+    }
 
     try:
         upload_to_base(data=data, user_id=user_id)
     except Exception as e:
         raise UnexpectedError()
 
-    if validation_data['status'] == 'invalid':
-        return jsonify(validation_data), 400
-    elif validation_data['status'] == 'partial_valid' and not force_upload:
-        return jsonify(validation_data), 400
+    if data['validation_data']['status'] == 'invalid':
+        return jsonify(validation), 400
+    elif data['validation_data']['status'] == 'partial_valid' and not force_upload:
+        return jsonify(validation), 400
     else:
-        return jsonify(validation_data), 200
+        return jsonify(validation), 200
 
 
 @projects.route('/projects/', methods=['GET'])

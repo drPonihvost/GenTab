@@ -22,6 +22,15 @@ def validator(value):
     return True
 
 
+def find_sample_in_array(array, sample_name):
+    n = 0
+    for i in array:
+        if i.get('sample_name') == sample_name:
+            return True, n
+        n += 1
+    return False, n - 1
+
+
 def validate_fields(header):
     for i in REQUIRED_KEYS[:4]:
         if header.count(i) == 0:
@@ -65,45 +74,37 @@ def total_validator(*args):
 
 
 def merge(old_alleles, new_alleles):
-    alleles = {**old_alleles, **new_alleles}
-    return alleles
-
-
-def comparison(old_alleles, new_alleles):
-    comparison_validate = []
+    merge_validate = True
     for allele, value in new_alleles.items():
         if old_alleles[allele] != value:
-            comparison_validate.append({
-                'allele': allele,
-                'allele_old': old_alleles[allele],
-                'allele_new': value
-            })
-    alleles = merge(old_alleles, new_alleles)
-    return alleles, comparison_validate
+            merge_validate = False
+    return old_alleles, merge_validate
 
 
-def form_result(status, ol_detect, merge_error, project):
+def form_result(status, ol_detect, merge_error, project, object_list):
     return {
         'validation_data': {
             'status': status,
             'OL_detect': ol_detect,
             'merge_error': merge_error
         },
-        "project": project
+        'project': project,
+        'object_list': object_list
     }
 
 
 def parser(data, filename):
     status = 'valid'
-    ol_detect = {}
+    ol_detect = []
     merge_error = []
     project = {filename: {}}
+    object_list = []
 
     keys_line, *rest = data.splitlines()
     header = line_to_array(keys_line)
     if validate_fields(header) == 'invalid':
         status = 'invalid'
-        return form_result(status, ol_detect, merge_error, project)
+        return form_result(status, ol_detect, merge_error, project, object_list)
 
     header = get_dict(header)
 
@@ -116,41 +117,48 @@ def parser(data, filename):
 
         if not project[filename].get(sample_name):
             project[filename][sample_name] = {marker: alleles}
+            object_list.append(
+                {
+                    'sample_name': sample_name,
+                    'status': 'valid'
+                }
+            )
         else:
             if project[filename][sample_name].get(marker):
                 old_alleles = project[filename][sample_name][marker]
                 new_alleles, ol_validate = allele_in_dict(row, header)
-                alleles, comparison_data = comparison(old_alleles, new_alleles)
-                merge_validate = merge_validator(comparison_data)
+                alleles, merge_validate = merge(old_alleles, new_alleles)
             project[filename][sample_name][marker] = alleles
 
-        total_validate = total_validator(ol_validate, merge_validate)
+        total_validate = total_validator(ol_detect, merge_validate)
 
         if not total_validate and status == 'valid':
             status = 'partial_valid'
 
-        if ol_detect.get(sample_name) and ol_validate:
-            if ol_detect.get(sample_name).count(marker) > 0:
-                x = ol_detect.get(sample_name)
-                x.pop(x.index(marker))
-                if len(x) == 0:
-                    ol_detect.pop(sample_name)
+        sample_in_object_list, sample_index = find_sample_in_array(object_list, sample_name)
 
-        if not ol_detect.get(sample_name) and not ol_validate:
-            ol_detect[sample_name] = [marker]
+        sample_containing_ol, object_index = find_sample_in_array(ol_detect, sample_name)
+
+        if not sample_containing_ol and not ol_validate:
+            ol_detect.append({'sample_name': sample_name, 'marker': [marker]})
         elif not ol_validate:
-            ol_detect[sample_name].append(marker)
+            ol_detect[object_index]['marker'].append(marker)
 
-        if not merge_validate:
-            merge_error.append(
-                {
-                    'sample_name': sample_name,
-                    'marker': marker,
-                    'data': comparison_data
-                }
-            )
+        sample_containing_merge_error, object_index = find_sample_in_array(merge_error, sample_name)
 
-    return form_result(status, ol_detect, merge_error, project)
+        if not sample_containing_merge_error and not merge_validate:
+            merge_error.append({'sample_name': sample_name, 'marker': [marker]})
+        elif not merge_validate:
+            merge_error[object_index]['marker'].append(marker)
+
+        object_status = object_list[sample_index]
+
+        if object_status['status'] == 'valid' and not ol_validate:
+            object_status['status'] = 'partial_valid'
+        elif not merge_validate and object_status['status'] == 'valid' or object_status == 'partial_valid':
+            object_status['status'] = 'invalid'
+
+    return form_result(status, ol_detect, merge_error, project, object_list)
 
 
 def upload_to_base(data, user_id):
