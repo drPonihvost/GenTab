@@ -61,12 +61,6 @@ def allele_in_dict(row, header):
     return alleles, ol_validate
 
 
-def merge_validator(comparison_data):
-    if len(comparison_data) > 0:
-        return False
-    return True
-
-
 def total_validator(*args):
     if False in args:
         return False
@@ -126,11 +120,11 @@ def parser(data, filename):
         else:
             if project[filename][sample_name].get(marker):
                 old_alleles = project[filename][sample_name][marker]
-                new_alleles, ol_validate = allele_in_dict(row, header)
+                new_alleles, new_ol_validate = allele_in_dict(row, header)
                 alleles, merge_validate = merge(old_alleles, new_alleles)
-            project[filename][sample_name][marker] = alleles
 
-        total_validate = total_validator(ol_detect, merge_validate)
+            project[filename][sample_name][marker] = alleles
+        total_validate = total_validator(ol_validate, merge_validate)
 
         if not total_validate and status == 'valid':
             status = 'partial_valid'
@@ -151,12 +145,12 @@ def parser(data, filename):
         elif not merge_validate:
             merge_error[object_index]['marker'].append(marker)
 
-        object_status = object_list[sample_index]
+        object_in_list = object_list[sample_index]
 
-        if object_status['status'] == 'valid' and not ol_validate:
-            object_status['status'] = 'partial_valid'
-        elif not merge_validate and object_status['status'] == 'valid' or object_status == 'partial_valid':
-            object_status['status'] = 'invalid'
+        if object_in_list['status'] == 'valid' and not ol_validate:
+            object_in_list['status'] = 'partial_valid'
+        elif not merge_validate:
+            object_in_list['status'] = 'invalid'
 
     return form_result(status, ol_detect, merge_error, project, object_list)
 
