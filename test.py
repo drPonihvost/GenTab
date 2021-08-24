@@ -12,6 +12,14 @@ def init_case(allele_1='', allele_2='', allele_3='', allele_4='', allele_5='', a
     }
 
 
+def find_sample(sample, array):
+    n = 0
+    for i in array:
+        if i.get(sample):
+            return n
+        n += 1
+
+
 class TestParserInvalid:
     def setup(self):
         self.file = open('test projects/test_invalid.txt', encoding='utf8')
@@ -30,38 +38,19 @@ class TestParserPartialValid:
         self.file = open('test projects/test_partial_valid.txt', encoding='utf8')
         self.filename = self.file.name
         self.data = parser(data=self.file.read(), filename=self.filename)
+        self.status_file = self.data['validation_data']['status']
+        self.ol_detect = self.data['validation_data']['ol_detect'][0]['marker'][0]
 
     def test_parser_valid_status(self):
-        assert self.data['validation_data']['status'] == 'partial_valid'
-
-    def test_parser(self):
-        assert self.data['project'][self.filename]['1']['D3S1358'] == init_case(allele_1='15', allele_2='16')
+        assert self.status_file == 'partial_valid'
 
     def test_parser_ol(self):
-        assert self.data['project'][self.filename]['2']['D3S1358'] == init_case(allele_1='15', allele_2='OL')
-        assert self.data['validation_data']['OL_detect']['2'][0] == 'D3S1358'
+        for i in range(1, 3):
+            sample_index = find_sample(sample=str(i), array=self.data['object_list'])
+            assert self.data['project'][self.filename][str(i)]['D3S1358'] == init_case(allele_1='15', allele_2='OL')
+            assert self.data['object_list'][sample_index]['status'] == 'partial_valid'
+            assert self.ol_detect == 'D3S1358'
 
-    def test_parser_merge(self):
-        assert self.data['project'][self.filename]['3']['D3S1358'] == init_case(allele_1='14', allele_2='15')
-        assert not self.data['validation_data']['merge_error'][0]['sample_name'] == '3'
-
-    def test_parser_merge_discrepancy(self):
-        assert self.data['project'][self.filename]['4']['D3S1358'] == init_case(allele_1='15', allele_2='16')
-        assert self.data['validation_data']['merge_error'][0]['sample_name'] == '4'
-
-    def test_parser_merge_discrepancy_add(self):
-        assert self.data['project'][self.filename]['5']['D3S1358'] == init_case(allele_1='16', allele_2='17', allele_3='18')
-        assert self.data['validation_data']
-
-
-
-        # assert self.data['project'][self.filename]['4']['D3S1358'] == init_case(allele_1='15', allele_2='16')
-        # assert self.data['project'][self.filename]['5']['D3S1358'] == init_case(allele_1='16', allele_2='17', allele_3='18')
-        # assert self.data['project'][self.filename]['6']['D3S1358'] == init_case(allele_1='15')
-        # assert self.data['project'][self.filename]['7']['D3S1358'] == init_case(allele_1='15', allele_2='16', allele_3='OL')
-        # assert self.data['project'][self.filename]['8']['D3S1358'] == init_case(allele_1='16', allele_2='OL', allele_3='17')
-        # assert self.data['project'][self.filename]['9']['D3S1358'] == init_case(allele_1='16', allele_2='17')
-        # assert self.data['project'][self.filename]['10']['D3S1358'] == init_case(allele_1='16', allele_2='17', allele_3='OL')
 
     def teardown(self):
         self.file.close()
@@ -76,8 +65,16 @@ class TestParserValid:
     def test_parser_valid_status(self):
         assert self.data['validation_data']['status'] == 'valid'
 
+
+
     def test_parser_alleles(self):
+        sample_index = find_sample(sample='1', array=self.data['object_list'])
         assert self.data['project'][self.filename]['1']['D3S1358'] == init_case(allele_1='15', allele_2='16')
+        assert self.data['object_list'][sample_index]['status'] == 'valid'
+
+        sample_index = find_sample(sample='2', array=self.data['object_list'])
+        assert self.data['project'][self.filename]['2']['D3S1358'] == init_case(allele_1='15', allele_2='15')
+        assert self.data['object_list'][sample_index]['status'] == 'valid'
 
     def teardown(self):
         self.file.close()
