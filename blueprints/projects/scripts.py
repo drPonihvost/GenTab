@@ -124,6 +124,7 @@ def parser(data, filename):
                 alleles, merge_validate = merge(old_alleles, new_alleles)
 
             project[filename][sample_name][marker] = alleles
+
         total_validate = total_validator(ol_validate, merge_validate)
 
         if not total_validate and status == 'valid':
@@ -147,7 +148,7 @@ def parser(data, filename):
 
         object_in_list = object_list[sample_index]
 
-        if object_in_list['status'] == 'valid' and not ol_validate:
+        if object_in_list['status'] == 'valid' and not ol_validate and merge_validate:
             object_in_list['status'] = 'partial_valid'
         elif not merge_validate:
             object_in_list['status'] = 'invalid'
