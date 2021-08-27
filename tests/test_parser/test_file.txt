@@ -1,0 +1,3 @@
+Sample Name	Run Name	Panel	Marker	Dye	Allele 1	Allele 2	Allele 3	Allele 4	Allele 5	Allele 6	
+99	test_run	PowerPlex_Fusion_6C_Panels_IDX_v1.3	D1S1656	B	17	OL	OL	OL	OL	OL	
+99	test_run	PowerPlex_Fusion_6C_Panels_IDX_v1.3	D1S1656	B	15	15					
