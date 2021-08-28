@@ -122,6 +122,7 @@ def parser(data, filename):
                 old_alleles = project[filename][sample_name][marker]
                 new_alleles, new_ol_validate = allele_in_dict(row, header)
                 alleles, merge_validate = merge(old_alleles, new_alleles)
+                ol_validate = total_validator(ol_validate, new_ol_validate)
 
             project[filename][sample_name][marker] = alleles
 
@@ -136,7 +137,7 @@ def parser(data, filename):
 
         if not sample_containing_ol and not ol_validate:
             ol_detect.append({'sample_name': sample_name, 'marker': [marker]})
-        elif not ol_validate:
+        elif not ol_validate and not sample_containing_ol:
             ol_detect[object_index]['marker'].append(marker)
 
         sample_containing_merge_error, object_index = find_sample_in_array(merge_error, sample_name)
