@@ -157,24 +157,67 @@ def parser(data, filename):
     return form_result(status, ol_detect, merge_error, project, object_list)
 
 
+def create_object_list(data):
+    return [i['sample_name'] for i in data['object_list'] if i['status'] == 'valid']
+
+
+def form_objects_only_base(object_list, object_in_base):
+    return [i for i in object_in_base if i not in object_list]
+
+
 def upload_to_base(data, user_id):
+    object_list = create_object_list(data=data)
+    filename = [i for i in data['project']][0]
+    project = Project.get_by_user(filename, user_id)
+    if project:
+        update_record(data, user_id, filename, object_list)
+        return {'msg': f'Проект {filename} обновлен'}
+    else:
+        create_record(data, user_id, filename, object_list)
+        return {'msg': f'Проект {filename} загружен'}
+
+
+def create_record(data, user_id, filename, object_list):
     projects = []
-    for file in data['project']:
-        project = Project.get_by_user(file, user_id)
-        if project:
-            project.delete()
-        project = Project(name=file,
-                          user_id=user_id,
-                          load_at=datetime.utcnow(),
-                          validation_data=data['validation_data'])
-        samples = []
-        for item in data['project'][file]:
-            markers = []
+    project = Project(
+        name=filename,
+        user_id=user_id,
+        load_at=datetime.utcnow()
+    )
+    samples = []
+    for item in data['project'][filename]:
+        if item not in object_list:
+            continue
+        sample = Object(name=item)
+        sample.marker = [Marker(name=mark, **al) for mark, al in data['project'][filename][item].items()]
+        samples.append(sample)
+    project.object = samples
+    projects.append(project)
+    Project.bulk_save(projects)
+
+
+def update_record(data, user_id, filename, object_list):
+    project = Project.get_by_user(filename, user_id)
+    object_in_base = Object.get_name_by_project_id(project_id=project.id)
+    only_base = form_objects_only_base(object_list, object_in_base)
+    projects = []
+    project.load_at = datetime.utcnow()
+    samples = []
+    for item in data['project'][filename]:
+        sample = Object.get_by_name(name=item, project_id=project.id)
+        if not sample and item not in object_list:
+            continue
+        elif not sample and item in object_list:
             sample = Object(name=item)
-            for mark, al in data['project'][file][item].items():
-                markers.append(Marker(name=mark, **al))
-            sample.marker = markers
+            sample.marker = [Marker(name=mark, **al) for mark, al in data['project'][filename][item].items()]
             samples.append(sample)
-        project.object = samples
-        projects.append(project)
+        elif sample and item in object_list:
+            sample.marker = [Marker(name=mark, **al) for mark, al in data['project'][filename][item].items()]
+            samples.append(sample)
+    if only_base:
+        for item in only_base:
+            sample = Object.get_by_name(name=item, project_id=project.id)
+            samples.append(sample)
+    project.object = samples
+    projects.append(project)
     Project.bulk_save(projects)

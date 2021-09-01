@@ -9,7 +9,7 @@ class Project(BaseModel):
                         db.ForeignKey('user.id'),
                         nullable=False)
     load_at = db.Column(db.DateTime)
-    validation_data = db.Column(db.JSON)
+    # validation_data = db.Column(db.JSON)
 
     object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
 
@@ -25,10 +25,11 @@ class Project(BaseModel):
     def filter_by_user(cls, q, user_id):
         return cls.query.filter(cls.name.contains(q), cls.user_id == user_id)
 
+
     id: int
     name: str
     load_at: load_at
-    validation_data: str
+    # validation_data: str
     object: 'Object'
 
 
@@ -39,6 +40,16 @@ class Object(BaseModel):
     @classmethod
     def get_by_name(cls, name, project_id):
         return cls.query.filter_by(name=name, project_id=project_id).first()
+
+    @classmethod
+    def get_name_by_project_id(cls, project_id):
+        object_list = []
+        q = cls.query.filter_by(project_id=project_id).all()
+        for i in q:
+            object_list.append(i.name)
+        return object_list
+
+
 
     name = db.Column(db.String(50))
     project_id = db.Column(db.Integer,

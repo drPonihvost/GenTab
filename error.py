@@ -1,13 +1,16 @@
 class UnexpectedError(Exception):
 
-    def __init__(self, status_code=400):
+    def __init__(self, msg, error, loc=None, status_code=400):
         super().__init__()
         self.status_code = status_code
+        self.msg = msg
+        self.loc = loc
+        self.type = error.__class__.__name__
 
     def to_dict(self):
         data = {
-            'msg': 'UnexpectedError',
-            'loc': 'None',
-            'type': 'UnexpectedError'
+            'msg': self.msg,
+            'loc': self.loc,
+            'type': self.type
         }
         return data

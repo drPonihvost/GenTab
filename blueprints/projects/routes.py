@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from .models import Project
+from .models import Project, Object
 from .scripts import parser, upload_to_base
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from error import UnexpectedError
@@ -16,35 +16,29 @@ def unexpected_error(e):
     return jsonify(errors), e.status_code
 
 
+@projects.route('/validate', methods=['POST'])
+@jwt_required()
+def validate():
+    # проверка корректности файла
+    filename = request.files['file'].filename
+    data = request.files.get('file').read().decode('utf-8')
+    try:
+        data = parser(data=data, filename=filename)
+    except Exception as e:
+        raise UnexpectedError(msg='Некорректный файл или формат данных', error=e)
+    return jsonify(data)
+
+
 @projects.route('/upload', methods=['POST'])
 @jwt_required()
 def upload():
-    # проверка корректности файла
-    force_upload = request.args.get('force_upload')
-    filename = request.files['file'].filename
-    data = request.files.get('file').read().decode('utf-8')
     user_id = get_jwt_identity()
+    data = request.json
     try:
-        data = parser(data=data, filename=filename)
-    except Exception:
-        raise UnexpectedError()
-
-    validation = {
-        'validation_data': data.get('validation_data'),
-        'object_list': data.get('object_list')
-    }
-
-    try:
-        upload_to_base(data=data, user_id=user_id)
+        msg = upload_to_base(data=data, user_id=user_id)
     except Exception as e:
-        raise UnexpectedError()
-
-    if data['validation_data']['status'] == 'invalid':
-        return jsonify(validation), 400
-    elif data['validation_data']['status'] == 'partial_valid' and not force_upload:
-        return jsonify(validation), 400
-    else:
-        return jsonify(validation), 200
+        raise UnexpectedError(msg='Ошибка загрузки', error=e)
+    return jsonify(msg)
 
 
 @projects.route('/projects/', methods=['GET'])
@@ -66,3 +60,39 @@ def get_projects():
          'page': pagination.page,
          'page_size': pagination.per_page}
     )
+
+@projects.route('/delete_project', methods=['DELETE'])
+@jwt_required()
+def delete_project():
+    user_id = get_jwt_identity()
+    name = request.args.get('project')
+    project = Project.get_by_user(
+        name=name,
+        user_id=user_id
+    )
+    try:
+        Project.delete(project)
+    except Exception as e:
+        raise UnexpectedError(msg=f'Ошибка при попытке удалить проект {name}', error=e)
+    return jsonify({'msg': f'Проект {name} удален'})
+
+
+@projects.route('/delete_object', methods=['DELETE'])
+@jwt_required()
+def delete_object():
+    user_id = get_jwt_identity()
+    project_name = request.args.get('project')
+    object_name = request.args.get('object')
+    project_id = Project.get_by_user(
+        name=project_name,
+        user_id=user_id
+    ).id
+    sample = Object.get_by_name(
+        name=object_name,
+        project_id=project_id
+    )
+    try:
+        Object.delete(sample)
+    except Exception as e:
+        raise UnexpectedError(msg=f'Ошибка при попытке удалить объект {object_name}', error=e)
+    return jsonify({'msg': f'Объект {object_name} удален'})
