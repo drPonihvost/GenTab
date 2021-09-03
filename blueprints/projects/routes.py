@@ -3,6 +3,8 @@ from .models import Project, Object
 from .scripts import parser, upload_to_base
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from error import UnexpectedError
+from sqlalchemy.orm.exc import UnmappedInstanceError
+import traceback
 
 POSTS_PER_PAGE = 20
 
@@ -20,9 +22,9 @@ def unexpected_error(e):
 @jwt_required()
 def validate():
     # проверка корректности файла
-    filename = request.files['file'].filename
-    data = request.files.get('file').read().decode('utf-8')
     try:
+        filename = request.files['file'].filename
+        data = request.files.get('file').read().decode('utf-8')
         data = parser(data=data, filename=filename)
     except Exception as e:
         raise UnexpectedError(msg='Некорректный файл или формат данных', error=e)
@@ -37,6 +39,7 @@ def upload():
     try:
         msg = upload_to_base(data=data, user_id=user_id)
     except Exception as e:
+        print(traceback.format_exc())
         raise UnexpectedError(msg='Ошибка загрузки', error=e)
     return jsonify(msg)
 
@@ -72,7 +75,7 @@ def delete_project():
     )
     try:
         Project.delete(project)
-    except Exception as e:
+    except UnmappedInstanceError as e:
         raise UnexpectedError(msg=f'Ошибка при попытке удалить проект {name}', error=e)
     return jsonify({'msg': f'Проект {name} удален'})
 
@@ -83,16 +86,20 @@ def delete_object():
     user_id = get_jwt_identity()
     project_name = request.args.get('project')
     object_name = request.args.get('object')
-    project_id = Project.get_by_user(
+    project = Project.get_by_user(
         name=project_name,
         user_id=user_id
-    ).id
+    )
+    try:
+        project_id = project.id
+    except AttributeError as e:
+        raise UnexpectedError(msg=f'Проект {project_name} не существует', error=e)
     sample = Object.get_by_name(
         name=object_name,
         project_id=project_id
     )
     try:
         Object.delete(sample)
-    except Exception as e:
+    except UnmappedInstanceError as e:
         raise UnexpectedError(msg=f'Ошибка при попытке удалить объект {object_name}', error=e)
     return jsonify({'msg': f'Объект {object_name} удален'})

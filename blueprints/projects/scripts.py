@@ -66,7 +66,7 @@ def total_validator(*args):
         return False
     return True
 
-
+# добавить возможность добавления значений если значения old_alleles пустые
 def merge(old_alleles, new_alleles):
     merge_validate = True
     for allele, value in new_alleles.items():
@@ -163,6 +163,8 @@ def create_object_list(data):
 
 def form_objects_only_base(object_list, object_in_base):
     return [i for i in object_in_base if i not in object_list]
+
+
 
 
 def upload_to_base(data, user_id):
