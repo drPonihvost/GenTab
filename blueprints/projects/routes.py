@@ -79,7 +79,7 @@ def delete_project():
         raise UnexpectedError(msg=f'Ошибка при попытке удалить проект {name}', error=e)
     return jsonify({'msg': f'Проект {name} удален'})
 
-
+# остался вопрос по валидации параметров и их обработке в блоке try
 @projects.route('/delete_object', methods=['DELETE'])
 @jwt_required()
 def delete_object():
@@ -92,14 +92,13 @@ def delete_object():
     )
     try:
         project_id = project.id
+        sample = Object.get_by_name(
+            name=object_name,
+            project_id=project_id
+        )
+        Object.delete(sample)
     except AttributeError as e:
         raise UnexpectedError(msg=f'Проект {project_name} не существует', error=e)
-    sample = Object.get_by_name(
-        name=object_name,
-        project_id=project_id
-    )
-    try:
-        Object.delete(sample)
     except UnmappedInstanceError as e:
         raise UnexpectedError(msg=f'Ошибка при попытке удалить объект {object_name}', error=e)
     return jsonify({'msg': f'Объект {object_name} удален'})

@@ -66,9 +66,12 @@ def total_validator(*args):
         return False
     return True
 
-# добавить возможность добавления значений если значения old_alleles пустые
+
 def merge(old_alleles, new_alleles):
     merge_validate = True
+    allele_list = [j for i, j in old_alleles.items()]
+    if len(set(allele_list)) == 1:
+        return new_alleles, merge_validate
     for allele, value in new_alleles.items():
         if old_alleles[allele] != value:
             merge_validate = False
@@ -165,6 +168,8 @@ def form_objects_only_base(object_list, object_in_base):
     return [i for i in object_in_base if i not in object_list]
 
 
+def create_markers(sample):
+    return [Marker(name=marker, **alleles) for marker, alleles in sample.items()]
 
 
 def upload_to_base(data, user_id):
@@ -191,7 +196,7 @@ def create_record(data, user_id, filename, object_list):
         if item not in object_list:
             continue
         sample = Object(name=item)
-        sample.marker = [Marker(name=mark, **al) for mark, al in data['project'][filename][item].items()]
+        sample.marker = create_markers(data['project'][filename][item])
         samples.append(sample)
     project.object = samples
     projects.append(project)
@@ -211,10 +216,10 @@ def update_record(data, user_id, filename, object_list):
             continue
         elif not sample and item in object_list:
             sample = Object(name=item)
-            sample.marker = [Marker(name=mark, **al) for mark, al in data['project'][filename][item].items()]
+            sample.marker = create_markers(data['project'][filename][item])
             samples.append(sample)
         elif sample and item in object_list:
-            sample.marker = [Marker(name=mark, **al) for mark, al in data['project'][filename][item].items()]
+            sample.marker = create_markers(data['project'][filename][item])
             samples.append(sample)
     if only_base:
         for item in only_base:
