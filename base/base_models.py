@@ -50,3 +50,5 @@ class BaseModel(db.Model):
         db.session.delete(self)
         if commit:
             db.session.commit()
+
+

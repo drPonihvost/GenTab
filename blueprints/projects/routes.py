@@ -1,9 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, abort
 from .models import Project, Object
 from .scripts import parser, upload_to_base
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from error import UnexpectedError
-from sqlalchemy.orm.exc import UnmappedInstanceError
+from error import UnexpectedError, NotFound
 import traceback
 
 POSTS_PER_PAGE = 20
@@ -12,18 +11,27 @@ projects = Blueprint('projects', __name__)
 
 
 @projects.errorhandler(UnexpectedError)
-def unexpected_error(e):
+def unexpected_error(error):
     errors = []
-    errors.append(e.to_dict())
-    return jsonify(errors), e.status_code
+    errors.append(error.to_dict())
+    return jsonify(errors), error.status_code
+
+@projects.errorhandler(NotFound)
+def unexpected_error(error):
+    errors = []
+    errors.append(error.to_dict())
+    return jsonify(errors), error.status_code
+
+@projects.errorhandler(404)
+def not_found(e):
+    return jsonify({'msg': 'Not found'}), 404
 
 
-@projects.route('/validate', methods=['POST'])
+@projects.route('/projects/<string:filename>', methods=['POST'])
 @jwt_required()
-def validate():
+def validate(filename):
     # проверка корректности файла
     try:
-        filename = request.files['file'].filename
         data = request.files.get('file').read().decode('utf-8')
         data = parser(data=data, filename=filename)
     except Exception as e:
@@ -31,11 +39,13 @@ def validate():
     return jsonify(data)
 
 
-@projects.route('/upload', methods=['POST'])
+@projects.route('/projects/', methods=['PATCH'])
 @jwt_required()
 def upload():
     user_id = get_jwt_identity()
     data = request.json
+    if not data:
+        raise NotFound(msg='Not found')
     try:
         msg = upload_to_base(data=data, user_id=user_id)
     except Exception as e:
@@ -64,41 +74,24 @@ def get_projects():
          'page_size': pagination.per_page}
     )
 
-@projects.route('/delete_project', methods=['DELETE'])
+@projects.route('/projects/<int:project_id>', methods=['DELETE'])
 @jwt_required()
-def delete_project():
+def delete_project(project_id):
     user_id = get_jwt_identity()
-    name = request.args.get('project')
-    project = Project.get_by_user(
-        name=name,
-        user_id=user_id
-    )
-    try:
-        Project.delete(project)
-    except UnmappedInstanceError as e:
-        raise UnexpectedError(msg=f'Ошибка при попытке удалить проект {name}', error=e)
-    return jsonify({'msg': f'Проект {name} удален'})
+    project = Project.get_by_id(project_id=project_id, user_id=user_id)
+    if not project:
+        raise NotFound(msg=f'Project not found')
+    project.delete()
+    return jsonify({'msg': f'success'})
 
-# остался вопрос по валидации параметров и их обработке в блоке try
-@projects.route('/delete_object', methods=['DELETE'])
+
+@projects.route('/projects/<int:project_id>/objects/<int:object_id>', methods=['DELETE'])
 @jwt_required()
-def delete_object():
+def delete_object(project_id, object_id):
     user_id = get_jwt_identity()
-    project_name = request.args.get('project')
-    object_name = request.args.get('object')
-    project = Project.get_by_user(
-        name=project_name,
-        user_id=user_id
-    )
-    try:
-        project_id = project.id
-        sample = Object.get_by_name(
-            name=object_name,
-            project_id=project_id
-        )
-        Object.delete(sample)
-    except AttributeError as e:
-        raise UnexpectedError(msg=f'Проект {project_name} не существует', error=e)
-    except UnmappedInstanceError as e:
-        raise UnexpectedError(msg=f'Ошибка при попытке удалить объект {object_name}', error=e)
-    return jsonify({'msg': f'Объект {object_name} удален'})
+    sample = Object.get_by_id(user_id=user_id, project_id=project_id, object_id=object_id)
+    if not sample:
+        raise NotFound(msg=f'Not found')
+    sample = sample[2]
+    sample.delete()
+    return jsonify({'msg': f'success'})
