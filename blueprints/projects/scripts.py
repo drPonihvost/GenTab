@@ -67,14 +67,16 @@ def total_validator(*args):
     return True
 
 
+def allele_in_list(alleles):
+    return [j for i, j in alleles.items()]
+
+
 def merge(old_alleles, new_alleles):
     merge_validate = True
-    allele_list = [j for i, j in old_alleles.items()]
-    if len(set(allele_list)) == 1:
+    if len(set(allele_in_list(old_alleles))) == 1:
         return new_alleles, merge_validate
-    for allele, value in new_alleles.items():
-        if old_alleles[allele] != value:
-            merge_validate = False
+    elif old_alleles != new_alleles and len(set(allele_in_list(new_alleles))) > 1:
+        merge_validate = False
     return old_alleles, merge_validate
 
 
@@ -172,22 +174,22 @@ def create_markers(sample):
     return [Marker(name=marker, **alleles) for marker, alleles in sample.items()]
 
 
-def upload_to_base(data, user_id):
+def upload_to_base(data, user_id, project_name):
     object_list = create_object_list(data=data)
-    filename = [i for i in data['project']][0]
-    project = Project.get_by_user(filename, user_id)
+    filename = [name for name in data['project']][0]
+    project = Project.get_by_user(project_name, user_id)
     if project:
-        update_record(data, user_id, filename, object_list)
-        return {'msg': f'Проект {filename} обновлен'}
+        update_record(data, filename, project, object_list)
+        return {'msg': f'Проект {project_name} обновлен'}
     else:
-        create_record(data, user_id, filename, object_list)
-        return {'msg': f'Проект {filename} загружен'}
+        create_record(data, filename,  user_id, project_name, object_list)
+        return {'msg': f'Проект {project_name} загружен'}
 
 
-def create_record(data, user_id, filename, object_list):
+def create_record(data, filename,  user_id, project_name, object_list):
     projects = []
     project = Project(
-        name=filename,
+        name=project_name,
         user_id=user_id,
         load_at=datetime.utcnow()
     )
@@ -203,8 +205,7 @@ def create_record(data, user_id, filename, object_list):
     Project.bulk_save(projects)
 
 
-def update_record(data, user_id, filename, object_list):
-    project = Project.get_by_user(filename, user_id)
+def update_record(data, filename, project, object_list):
     object_in_base = Object.get_name_by_project_id(project_id=project.id)
     only_base = form_objects_only_base(object_list, object_in_base)
     projects = []

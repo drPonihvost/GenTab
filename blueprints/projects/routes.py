@@ -27,27 +27,28 @@ def not_found(e):
     return jsonify({'msg': 'Not found'}), 404
 
 
-@projects.route('/projects/<string:filename>', methods=['POST'])
+@projects.route('/projects/', methods=['POST'])
 @jwt_required()
-def validate(filename):
+def validate():
     # проверка корректности файла
     try:
         data = request.files.get('file').read().decode('utf-8')
+        filename = request.files.get('file').filename
         data = parser(data=data, filename=filename)
     except Exception as e:
         raise UnexpectedError(msg='Некорректный файл или формат данных', error=e)
     return jsonify(data)
 
 
-@projects.route('/projects/', methods=['PATCH'])
+@projects.route('/projects/<string:project_name>', methods=['POST'])
 @jwt_required()
-def upload():
+def upload(project_name):
     user_id = get_jwt_identity()
     data = request.json
     if not data:
         raise NotFound(msg='Not found')
     try:
-        msg = upload_to_base(data=data, user_id=user_id)
+        msg = upload_to_base(data, user_id, project_name)
     except Exception as e:
         print(traceback.format_exc())
         raise UnexpectedError(msg='Ошибка загрузки', error=e)
