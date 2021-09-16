@@ -1,30 +1,61 @@
-from flask import Blueprint, request, jsonify
-from .models import Project
+from flask import Blueprint, request, jsonify, abort
+from .models import Project, Object
 from .scripts import parser, upload_to_base
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from error import UnexpectedError, NotFound
+import traceback
 
 POSTS_PER_PAGE = 20
 
 projects = Blueprint('projects', __name__)
 
 
-@projects.route('/upload', methods=['POST'])
+@projects.errorhandler(UnexpectedError)
+def unexpected_error(error):
+    errors = []
+    errors.append(error.to_dict())
+    return jsonify(errors), error.status_code
+
+@projects.errorhandler(NotFound)
+def unexpected_error(error):
+    errors = []
+    errors.append(error.to_dict())
+    return jsonify(errors), error.status_code
+
+@projects.errorhandler(404)
+def not_found(e):
+    return jsonify({'msg': 'Not found'}), 404
+
+
+@projects.route('/projects/', methods=['POST'])
 @jwt_required()
-def upload():
+def validate():
     # проверка корректности файла
+    try:
+        data = request.files.get('file').read().decode('utf-8')
+        filename = request.files.get('file').filename
+        data = parser(data=data, filename=filename)
+    except Exception as e:
+        raise UnexpectedError(msg='Некорректный файл или формат данных', error=e)
+    return jsonify(data)
 
-    filename = request.files['file'].filename
-    data = request.files.get('file').read().decode('utf-8')
+
+@projects.route('/projects/<string:project_name>', methods=['POST'])
+@jwt_required()
+def upload(project_name):
     user_id = get_jwt_identity()
-    data = parser(data=data, filename=filename)
-    validation_data = data.get('validation_data')
+    data = request.json
+    if not data:
+        raise NotFound(msg='Not found')
+    try:
+        msg = upload_to_base(data, user_id, project_name)
+    except Exception as e:
+        print(traceback.format_exc())
+        raise UnexpectedError(msg='Ошибка загрузки', error=e)
+    return jsonify(msg)
 
-    upload_to_base(data=data, user_id=user_id)
 
-    return jsonify(validation_data)
-
-
-@projects.route('/projects/', methods=['GET', 'POST'])
+@projects.route('/projects/', methods=['GET'])
 @jwt_required()
 def get_projects():
     page = request.args.get('page', 0, type=int)
@@ -43,3 +74,25 @@ def get_projects():
          'page': pagination.page,
          'page_size': pagination.per_page}
     )
+
+@projects.route('/projects/<int:project_id>', methods=['DELETE'])
+@jwt_required()
+def delete_project(project_id):
+    user_id = get_jwt_identity()
+    project = Project.get_by_id(project_id=project_id, user_id=user_id)
+    if not project:
+        raise NotFound(msg=f'Project not found')
+    project.delete()
+    return jsonify({'msg': f'success'})
+
+
+@projects.route('/projects/<int:project_id>/objects/<int:object_id>', methods=['DELETE'])
+@jwt_required()
+def delete_object(project_id, object_id):
+    user_id = get_jwt_identity()
+    sample = Object.get_by_id(user_id=user_id, project_id=project_id, object_id=object_id)
+    if not sample:
+        raise NotFound(msg=f'Not found')
+    sample = sample[2]
+    sample.delete()
+    return jsonify({'msg': f'success'})

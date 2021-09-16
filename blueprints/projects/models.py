@@ -1,5 +1,6 @@
 from base.base_models import BaseModel, db
 from dataclasses import dataclass
+from blueprints.auth.models import User
 
 
 @dataclass
@@ -9,12 +10,15 @@ class Project(BaseModel):
                         db.ForeignKey('user.id'),
                         nullable=False)
     load_at = db.Column(db.DateTime)
-    validation_data = db.Column(db.JSON)
 
     object = db.relationship('Object', backref='project', cascade='all,delete-orphan')
 
     def __repr__(self):
         return f'<id: {self.id}, name: {self.name}, user_id: {self.user_id}, load_at: {self.load_at}>'
+
+    @classmethod
+    def get_by_id(cls, project_id, user_id):
+        return cls.query.filter_by(id=project_id, user_id=user_id).first()
 
     @classmethod
     def get_by_user(cls, name, user_id):
@@ -24,10 +28,10 @@ class Project(BaseModel):
     def filter_by_user(cls, q, user_id):
         return cls.query.filter(cls.name.contains(q), cls.user_id == user_id)
 
+
     id: int
     name: str
     load_at: load_at
-    validation_data: str
     object: 'Object'
 
 
@@ -35,9 +39,31 @@ class Project(BaseModel):
 class Object(BaseModel):
     __table_args__ = (db.UniqueConstraint('name', 'project_id'),)
 
+    @staticmethod
+    def get_by_id(user_id, project_id, object_id):
+        return db.session.query(
+            User, Project, Object
+        ).join(
+            Project, User.id == user_id
+        ).join(
+            Object, Project.id == project_id
+        ).filter(Object.id == object_id).first()
+
     @classmethod
     def get_by_name(cls, name, project_id):
         return cls.query.filter_by(name=name, project_id=project_id).first()
+
+    @classmethod
+    def get_name_by_project_id(cls, project_id):
+        object_list = []
+        q = cls.query.filter_by(project_id=project_id).all()
+        for i in q:
+            object_list.append(i.name)
+        return object_list
+
+
+
+
 
     name = db.Column(db.String(50))
     project_id = db.Column(db.Integer,

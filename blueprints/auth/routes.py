@@ -7,7 +7,7 @@ from pydantic import ValidationError
 auth = Blueprint('auth', __name__)
 
 
-@auth.route('/token', methods=['POST'])
+@auth.route('/token', methods=['GET'])
 def get_token():
     try:
         params = Login(**request.json).dict()
